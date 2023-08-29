@@ -1,0 +1,6 @@
+fastapi
+uvicorn
+jinja2
+passlib
+pymongo==3.11
+python-multipart
