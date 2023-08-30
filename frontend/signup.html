@@ -4,22 +4,16 @@
 <head>
     <title>SmartQ - 회원 가입</title>
     <link rel="stylesheet" href="{{ url_for('static', path='/css/signup.css') }}">
+    <script src="{{ url_for('static', path='/js/signup.js') }}"></script>
 </head>
 
 <body>
+    <hr>
+    <h1 style="text-align: center;"> - Deliver Eye - </h1>
+    <hr>
     <div class="login-container">
         <h2>Sign UP</h2>
-        {% if msg %}
-        <div class="alert alert-success" role="alert">
-            {{ msg }}
-        </div>
-        {% endif %}
-        {% for error in errors %}
-        <div class="alert alert-danger" , role="alert">
-            {{ error }}
-        </div>
-        {% endfor %}
-        <form method="POST">
+        <form id="signup-form">
             <div class="input-field">
                 <label for="user_email">Email</label>
                 <input type="text" id="user_email" name="user_email" required>
@@ -28,7 +22,7 @@
                 <label for="password">Password</label>
                 <input type="password" id="password" name="password" required>
             </div>
-            <button type="submit">Complete</button>
+            <button type="button" onclick="signup()">Sign UP</button>
         </form>
     </div>
 </body>

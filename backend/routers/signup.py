@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Request
 from fastapi.templating import Jinja2Templates
-from fastapi.responses import RedirectResponse
+from fastapi.responses import JSONResponse
 
 from backend import schemas, hashing, database
 
@@ -9,7 +9,7 @@ router = APIRouter(
     tags=['signup']
 )
 
-templates = Jinja2Templates(directory='templates')
+templates = Jinja2Templates(directory='frontend')
 
 @router.get('/')
 async def signup_page(request: Request):
@@ -17,7 +17,7 @@ async def signup_page(request: Request):
 
 @router.post('/')
 async def signup(request: Request):
-    form = await request.form()
+    form = await request.json()
 
     user_email = form.get('user_email')
     password = form.get('password')
@@ -25,10 +25,14 @@ async def signup(request: Request):
     errors = []
     if not user_email:
         errors.append('Please Enter Email')
-        return templates.TemplateResponse("/signup.html", {"request": request, "errors": errors})
     if not password:
-        errors.append("Please Enter Password ")
-        return templates.TemplateResponse("/signup.html", {"request": request, "errors": errors})
+        errors.append("Please Enter Password")
+    # 중복 확인
+    if database.check_email(user_email):
+        errors.append('Email already exists')
+
+    if errors:
+        return JSONResponse(content={'errors': errors}, status_code=400)
 
     # 패스워드 해시 처리
     hashed_password = hashing.Hash.bcrypt(password)
@@ -36,11 +40,8 @@ async def signup(request: Request):
     # 추가할 유저
     new_user = schemas.User(email=user_email, password=hashed_password)
 
-    # 이메일 중복 체크
-    if database.check_email(new_user.email):
-        errors.append('Email already exists')
-        return templates.TemplateResponse("/signup.html", {"request": request, "errors": errors})
-    else:
-        database.insert_user(new_user)
-        return RedirectResponse('/login', status_code=302)
-        
+    # 유저 DB에 추가
+    database.insert_user(new_user)
+
+    return JSONResponse(content={'message': 'Sign Up Success'}, status_code=200)
+  

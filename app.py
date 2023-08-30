@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 
-from backend.routers import signup
+from backend.routers import signup, login
 
 
 app = FastAPI()
@@ -10,3 +10,4 @@ app = FastAPI()
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
 app.include_router(signup.router)
+app.include_router(login.router)
