@@ -40,7 +40,7 @@ body {
     cursor: pointer;
 }
 
-button[type="submit"] {
+button {
     background-color: #4CAF50;
     color: white;
     padding: 10px 20px;

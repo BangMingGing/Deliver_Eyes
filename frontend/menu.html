@@ -1,0 +1,23 @@
+<html>
+<head>
+    <title>Deliver Eye - 메뉴</title>
+    <link rel="stylesheet" href="{{ url_for('static', path='/css/menu.css') }}">
+    <script src="{{ url_for('static', path='/js/menu.js') }}"></script>
+</head>
+<body>
+    <hr>
+    <h1 style="text-align: center;"> - Deliver Eye - </h1>
+    <hr>
+    <div class="menu-container">
+        <h2>Menu</h2>
+        <div id="menu-buttons">
+            <button class="button" onclick="goToMapPage()">Map</button>
+        </div>
+        <br>
+        <div id="menu-buttons">
+            <button class="button" onclick="goToNothingPage()"">Nothing</button>
+        </div>
+        
+        <br>
+        <button class="logout" onclick="location.href = 'http://203.255.57.122:8888/'">Logout</button>
+    </div>

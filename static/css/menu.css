@@ -1,0 +1,46 @@
+body {
+    margin: 0;
+    padding: 0;
+    font-family: Arial, sans-serif;
+}
+
+.menu-container {
+    margin: 100px auto;
+    max-width: 400px;
+    padding: 20px;
+    border: 1px solid #ccc;
+    text-align: center;
+}
+
+.menu-container h2 {
+    margin-top: 0;
+}
+
+#menuButtons {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 60%;
+}
+
+button.button{
+    width: 80%;
+    height: 15%;
+    border: 0;
+    font-size: 20px;
+    font-weight: 600;
+    border-radius: 10px;
+    align-items: center;
+}
+
+button.logout{
+    position: relative;
+    width: 30%;
+    height: 5%;
+    border: 0;
+    font-size: 18px;
+    font-weight: 600;
+    border-radius: 10px;
+    align-items: center;
+}

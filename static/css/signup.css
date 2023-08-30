@@ -4,7 +4,7 @@ body {
     font-family: Arial, sans-serif;
 }
 
-.login-container {
+.signup-container {
     margin: 100px auto;
     max-width: 400px;
     padding: 20px;
@@ -12,7 +12,7 @@ body {
     text-align: center;
 }
 
-.login-container h2 {
+.signup-container h2 {
     margin-top: 0;
 }
 
@@ -33,7 +33,7 @@ body {
     border-radius: 3px;
 }
 
-button[type="submit"] {
+button {
     background-color: #4CAF50;
     color: white;
     padding: 10px 20px;
