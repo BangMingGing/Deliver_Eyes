@@ -22,8 +22,8 @@ class Consumer():
         # Queue-Exchange Binding
         self.channel.queue_bind(exchange=self.exchange_name, queue=self.queue_name, routing_key=f'to{self.queue_name}')
 
-        # TaskScheduler 인스턴스 생성
-        self.task_scheduler = TaskScheduler()
+        # TaskManager 인스턴스 생성
+        self.task_manager = TaskManager()
 
     
     def callback(self, ch, method, properties, body):
@@ -31,7 +31,7 @@ class Consumer():
         
         drone = message['drone']
 
-        self.task_scheduler.run(drone)
+        self.task_manager.run(drone)
 
         ch.basic_ack(deliver_tag=method.deliver_tag)
 
