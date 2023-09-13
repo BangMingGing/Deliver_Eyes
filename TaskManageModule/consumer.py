@@ -17,8 +17,7 @@ class Consumer():
 
         # Queue 선언
         queue = self.channel.queue_declare(self.queue_name)
-        # Exchange 선언
-        self.channel.exchange_declare(self.exchange_name)
+        
         # Queue-Exchange Binding
         self.channel.queue_bind(exchange=self.exchange_name, queue=self.queue_name, routing_key=f'to{self.queue_name}')
 

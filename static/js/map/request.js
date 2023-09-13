@@ -34,7 +34,7 @@ export async function getNodes() {
     }
 }
 
-// route 가져오기
+// 경로 생성 요청
 export async function generateMissionFile(basecamp, destination) {
     const response = await fetch('/map/generateMissionFile', {
         method: 'POST',
@@ -45,21 +45,21 @@ export async function generateMissionFile(basecamp, destination) {
             basecamp,
             destination
         }),
-        credentials: 'include',
     });
 
     const responseData = await response.json();
 
     if (response.ok) {
-        // getBaseCampLocation 성공 처리
+        // generateMissionFile 성공 처리
         const route = responseData.route;
         console.log('generateMissionFile successful');
         return new Promise((resolve) => {
             resolve(route);
-        });
+        })
+
     } else {
         // 오류 처리
-        const errors = responseData.errors;
-        console.error('generateMissionFile failed', errors);
+        console.error('generateMissionFile failed');
     }
 }
+

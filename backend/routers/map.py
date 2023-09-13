@@ -1,8 +1,12 @@
+import time
+
 from fastapi import APIRouter, Request
 from fastapi.templating import Jinja2Templates
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, RedirectResponse
 
-from backend import database, utils
+from backend import database, utils, rabbitmq, MFG
+
+TaskManager_publisher = rabbitmq.Task_Publisher('TaskManager')
 
 router = APIRouter(
     prefix='/map',
@@ -12,8 +16,14 @@ router = APIRouter(
 templates = Jinja2Templates(directory='frontend')
 
 
+
+
 @router.get('/')
 async def map_page(request: Request):
+    user = utils.getUserFromCookies(request.cookies)
+    if not user:
+        return RedirectResponse(url="/login/", status_code=302)
+    
     return templates.TemplateResponse('/map.html', {'request': request})
 
 
@@ -41,14 +51,23 @@ async def getNodes():
 
 @router.post('/generateMissionFile')
 async def generateMissionFile(request: Request):
+    user = utils.getUserFromCookies(request.cookies)
+    if not user:
+        return RedirectResponse(url="/login/", status_code=302)
+
     requestJson = await request.json()
 
     basecamp = requestJson.get('basecamp')
     destination = requestJson.get('destination')
-    user = utils.getUserFromCookies(request.cookies)
     
-    missionFile = [basecamp, destination]
+    # 미션 파일 생성
+    MFG.generateMissionFile(basecamp, destination, user)
 
-    route = missionFile
+    # 경로 가져오기
+    try:
+        route = database.getRoute(user)
+        return JSONResponse(content={'route': route}, status_code=200)
+    except:
+        errors = 'Error occured while get route from DB'
+        return JSONResponse(content={'errors': errors}, status_code=400)
 
-    return JSONResponse(content={'route': route}, status_code=200)

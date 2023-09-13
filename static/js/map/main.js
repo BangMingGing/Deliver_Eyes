@@ -42,7 +42,7 @@ async function main() {
     });
 
     generateMissionFileButton.addEventListener('click', async function() {
-        // 경로 생성 요청
+        // 미션파일 생성 요청
         route = await generateMissionFile(basecamp, destination);
         // 경로 그리기
         drawRoute(map, route);

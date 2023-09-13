@@ -12,6 +12,8 @@ class Task_Publisher():
         self.channel = self.connection.channel()
         
         self.exchange_name = exchange_name
+        # Exchange 선언
+        self.channel.exchange_declare(self.exchange_name)
 
     
     def publish(self, message, target):        

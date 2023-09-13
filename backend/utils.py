@@ -8,3 +8,5 @@ def getUserFromCookies(cookies):
     except:
         print("Error in getUserFromCookies function")
         return None
+
+

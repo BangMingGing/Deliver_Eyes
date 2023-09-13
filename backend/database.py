@@ -42,3 +42,25 @@ def getNodes():
     # [{'node_coor': [lat, lon]}] --> [[lat, lon]]
     nodeCoordinates = [node['node_coor'] for node in nodes]
     return nodeCoordinates
+
+def getRoute(user):
+    missionFile = db['MissionFiles'].find_one({'user': user})
+    if missionFile is not None:
+        return missionFile['route']
+    
+    return None
+
+## generateMissionFile
+
+def rmPastMissionFile(user):
+    oldMissionFile = db['MissionFiles'].find_one({'user': user})
+    if oldMissionFile:
+        db['MissionFiles'].delete_one({'user': user})
+
+def saveMissionFile(missionFile):    
+    db['MissionFiles'].insert_one(dict(missionFile))
+    return True
+
+
+def getFlightAlt(drone):
+    return db['Drones'].find_one({'drone': drone})['flight_alt']
