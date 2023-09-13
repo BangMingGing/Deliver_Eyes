@@ -12,8 +12,8 @@ class Consumer():
         self.connection = pika.BlockingConnection(pika.ConnectionParameters(RABBITMQ_SERVER_IP, RABBITMQ_SERVER_PORT, 'vhost', self.credentials))
         self.channel = self.connection.channel()
 
-        self.queue_name = 'TaskScheduler'
-        self.exchange_name = 'TaskScheduler'
+        self.queue_name = 'TaskManager'
+        self.exchange_name = 'TaskManager'
 
         # Queue 선언
         queue = self.channel.queue_declare(self.queue_name)
@@ -39,7 +39,7 @@ class Consumer():
     def consume(self):
         self.channel.basic_qos(prefetch_count=1)
         self.channel.basic_consume(on_message_callback=self.callback, queue=self.queue_name)
-        print(f'TaskScheduler Start Consuming')
+        print(f'TaskManager Start Consuming')
         self.channel.start_consuming()
 
 
