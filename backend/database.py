@@ -26,3 +26,19 @@ def insert_user(user):
 def get_user(email):
     user = db['Users'].find_one({'email': email})
     return user
+
+
+## map
+
+def getBaseCamp(baseCampName):
+    baseCampNode = db['Basecamp'].find_one({'BC_name': baseCampName})
+    baseCampLocation = baseCampNode['BC_coor']
+    return baseCampLocation
+
+def getNodes():
+    # node_coor 데이터만 가져와 리스트로 반환
+    projection = {'_id': 0, 'node_coor': 1}
+    nodes = list(db['Nodes'].find({}, projection))
+    # [{'node_coor': [lat, lon]}] --> [[lat, lon]]
+    nodeCoordinates = [node['node_coor'] for node in nodes]
+    return nodeCoordinates

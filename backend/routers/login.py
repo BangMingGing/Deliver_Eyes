@@ -18,10 +18,10 @@ async def login_page(request: Request):
 
 @router.post('/')
 async def login(request: Request):
-    form = await request.json()
+    requestJson = await request.json()
 
-    user_email = form.get('user_email')
-    password = form.get('password')
+    user_email = requestJson.get('user_email')
+    password = requestJson.get('password')
     
     errors = []
     if not user_email:

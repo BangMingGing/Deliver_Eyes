@@ -23,5 +23,6 @@ def verify_token(token: str):
         
         return email
     
-    except JWTError:
+    except JWTError as e:
+        print(f"Token verification failed: {e}")
         return False
