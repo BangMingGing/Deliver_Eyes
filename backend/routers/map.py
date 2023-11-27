@@ -2,9 +2,8 @@ from fastapi import APIRouter, Request
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import JSONResponse, RedirectResponse
 
-from backend import database, utils, rabbitmq, MFG
-
-TaskManager_publisher = rabbitmq.Task_Publisher('TaskManager')
+from backend import database, utils, rabbitmq
+from MFGModule import MFG
 
 router = APIRouter(
     prefix='/map',
@@ -13,6 +12,8 @@ router = APIRouter(
 
 templates = Jinja2Templates(directory='frontend')
 
+publisher = rabbitmq.Publisher()
+publisher.declareExchange("TaskManager")
 
 @router.get('/')
 async def map_page(request: Request):
@@ -67,3 +68,25 @@ async def generateMissionFile(request: Request):
         errors = 'Error occured while get route from DB'
         return JSONResponse(content={'errors': errors}, status_code=400)
 
+
+@router.post('/deliverStart')
+async def deliverStart(request: Request):
+    user = utils.getUserFromCookies(request.cookies)
+    if not user:
+        return RedirectResponse(url="/login/", status_code=302)
+    
+    drone = database.getDroneByUser(user)
+    
+    if not drone:
+        errors = 'Error occured while get drone from DB'
+        return JSONResponse(content={'errors': errors}, status_code=400)
+
+    message = {"header": "start", "drone": drone}
+    publisher.publish(
+        message=message, 
+        exchange_name="TaskManager", 
+        target="TaskManager"
+    )
+
+    response = "Deliver Start Success"
+    return JSONResponse(content={'response': response}, status_code=200)

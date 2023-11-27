@@ -63,3 +63,21 @@ export async function generateMissionFile(basecamp, destination) {
     }
 }
 
+export async function deliverStartRequest() {
+    const response = await fetch('/map/deliverStart', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+        }),
+    });
+
+    if (response.ok) {
+        // generateMissionFile 성공 처리
+        console.log('generateMissionFile successful');
+    } else {
+        // 오류 처리
+        console.error('generateMissionFile failed');
+    }
+}

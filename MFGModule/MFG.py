@@ -13,10 +13,10 @@ def generateMissionFile(basecamp, destination, user):
     # 테스트 미션 파일
     missionFile = {
         'user': user,
-        'basecamp': basecamp,
-        'destination': destination,
-        'route': route,
-        'drone': drone,
+        'basecamp': basecamp, # 위도, 경도
+        'destination': destination, # 위도, 경도
+        'route': route, # [위도, 경도, 고도]
+        'drone': drone, 
         'flight_alt': flight_alt,
         'receiver_info': 'test_receiver_info'
     }
@@ -26,5 +26,7 @@ def generateMissionFile(basecamp, destination, user):
 
     # 미션 파일 DB에 저장
     database.saveMissionFile(missionFile)
+    
+    
 
     return

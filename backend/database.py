@@ -1,7 +1,9 @@
 from pymongo import MongoClient
 
-client = "mongodb+srv://bmk802:ahdrhelqlqlqjs1!@cluster0.psq7llu.mongodb.net/?retryWrites=true&w=majority"
-database = "Deliver_Eyes"
+from config import DB_CONFIG
+
+client = DB_CONFIG.CONNECTION_URL
+database = DB_CONFIG.DATABASE
 
 mongodb_client = MongoClient(client)
 db = mongodb_client[database]
@@ -47,6 +49,13 @@ def getRoute(user):
     missionFile = db['MissionFiles'].find_one({'user': user})
     if missionFile is not None:
         return missionFile['route']
+    
+    return None
+
+def getDroneByName(user):
+    missionFile = db['MissionFiles'].find_one({'user': user})
+    if missionFile is not None:
+        return missionFile['drone']
     
     return None
 

@@ -1,4 +1,4 @@
-import { getBasecamp, getNodes, generateMissionFile } from "./request.js";
+import { getBasecamp, getNodes, generateMissionFile, deliverStartRequest } from "./request.js";
 import { setDestinationMode, getSelectedLocation, setDefaultMode, findClosestNode } from "./utils.js";
 import { drawMap, drawMarker, drawMarkers, drawDestinationMarker, drawRoute } from "./draw.js";
 
@@ -46,12 +46,21 @@ async function main() {
         route = await generateMissionFile(basecamp, destination);
         // 경로 그리기
         drawRoute(map, route);
+        // 배송 시작 버튼 활성화
+        deliverStartButton.disabled = false;
     })
 
     deliverStartButton.addEventListener('click', async function() {
-        // 
+        // 배송 시작 요청
+        await deliverStartRequest();
+        // GPS 모니터링 시작
+        // GPS 값 요청 시작
     });
-    // receiveCompleteButton.addEventListener('click', receiveCompleteButtonEvent);
+    receiveCompleteButton.addEventListener('click', async function() {
+        // 백엔드로 복귀 요청
+        
+        // 후 처리 과정
+    });
 }
 
 main();
