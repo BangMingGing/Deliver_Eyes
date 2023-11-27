@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <title>Deliver Eye - 로그인</title>
+    
+    <link rel='stylesheet' href='https://api.tiles.mapbox.com/mapbox-gl-js/v2.13.0/mapbox-gl.css'>
+    <script src='https://api.tiles.mapbox.com/mapbox-gl-js/v2.13.0/mapbox-gl.js'></script>
+    <link rel="stylesheet" href="{{ url_for('static', path='/css/node.css') }}">
+    
+    <script type="module" src="{{ url_for('static', path='/js/node/draw.js') }}"></script>
+    <script type="module" src="{{ url_for('static', path='/js/node/utils.js') }}"></script>
+    <script type="module" src="{{ url_for('static', path='/js/node/request.js') }}"></script>
+    <script type="module" src="{{ url_for('static', path='/js/node/main.js') }}"></script>
+</head>
+<body>
+    <div id="map-container">
+        <div id="map"></div>
+        <div id="buttonZone">
+            <button id="selectNodeButton">노드 삽입</button>
+            <button id="generateMissionFileButton" disabled="True">미션파일 생성</button>
+            <button id="deliverStartButton" disabled="True">배송 시작</button>
+            <button id="receiveCompleteButton" disabled="True">수령 완료</button>
+        </div>
+        <div id="chatZone">
+            <h2>메시지 창</h2>
+            <div id="chatDisplay">
+                <!-- Messages from the server will be displayed here -->
+            </div>
+            <div id="chatInputDiv">
+                <input type="text" id="chatInput" placeholder="메시지 입력">
+                <button id="messageSend">전송</button>
+            </div>
+        </div>
+    </div>
+</body>

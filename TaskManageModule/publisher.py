@@ -5,7 +5,7 @@ sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
 import pika
 import pickle
 
-from config import RABBITMQ_CONFIG
+from configration import RABBITMQ_CONFIG
 
 RABBITMQ_SERVER_IP = RABBITMQ_CONFIG.SERVER_IP
 RABBITMQ_SERVER_PORT = RABBITMQ_CONFIG.SERVER_PORT

@@ -8,7 +8,7 @@ async function goToMapPage() {
     window.location.href = '/map/';
 }
 
-// ? 창으로 이동하는 함수
-async function goToNothingPage() {
-    window.location.href = '/nothing/';
+// 노드 창으로 이동하는 함수
+async function goToNodePage() {
+    window.location.href = '/node/';
 }

@@ -1,7 +1,7 @@
 import pika
 import pickle
 
-from config import RABBITMQ_CONFIG
+from configration import RABBITMQ_CONFIG
 
 RABBITMQ_SERVER_IP = RABBITMQ_CONFIG.SERVER_IP
 RABBITMQ_SERVER_PORT = RABBITMQ_CONFIG.SERVER_PORT

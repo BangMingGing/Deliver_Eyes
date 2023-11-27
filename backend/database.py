@@ -1,6 +1,6 @@
 from pymongo import MongoClient
 
-from config import DB_CONFIG
+from configration import DB_CONFIG
 
 client = DB_CONFIG.CONNECTION_URL
 database = DB_CONFIG.DATABASE
@@ -73,3 +73,12 @@ def saveMissionFile(missionFile):
 
 def getFlightAlt(drone):
     return db['Drones'].find_one({'drone': drone})['flight_alt']
+
+
+
+## node
+
+
+def insert_node(Nodes):
+    db['Nodes'].insert_one()
+    return True
