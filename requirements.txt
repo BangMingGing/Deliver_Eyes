@@ -7,3 +7,5 @@ python-multipart
 python-jose
 jose
 pika
+aio_pika
+asyncio

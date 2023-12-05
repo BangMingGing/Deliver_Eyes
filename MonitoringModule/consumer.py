@@ -2,7 +2,8 @@ import os
 import sys
 sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
 
-import pika
+import aio_pika
+import asyncio
 import pickle
 
 import database
@@ -28,7 +29,7 @@ async def log_consume(connection):
                     # print(f"Received message: {message_data}")
 
 
-    print("Log Consumer started")
+    print(" -- [Log Consumer] started")
 
     while True:
         await consume_with_semaphore()
