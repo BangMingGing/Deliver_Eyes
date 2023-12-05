@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta
 from jose import JWTError, jwt
 
-from config import JWT_CONFIG
+from configuration import JWT_CONFIG
 
 SECRET_KEY = JWT_CONFIG.SECRET_KEY
 ALGORITHM = JWT_CONFIG.ALGORITHM
