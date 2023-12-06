@@ -1,4 +1,6 @@
+import aio_pika
 import asyncio
+import pickle
 import threading
 import database
 
@@ -14,32 +16,37 @@ class TaskManager():
 
     async def mission_valid(self, drone_name, current_mission):
         mission = self.mission_lists[drone_name]
+
+        if current_mission+1 == len(mission):
+            return
         next_node = mission[current_mission+1]
 
-        self.occupied_nodes_lock.acquire()
-        if (await self.isValidNode(next_node)):
-            self.occupied_nodes.append(next_node)
-            self.occupied_nodes_lock.release()
-            return
+        try:
+            self.occupied_nodes_lock.acquire()
+            if (await self.isValidNode(next_node)):
+                self.occupied_nodes.append(next_node)
+                return
 
-        else:
+            else:
+                pause_message = await self.get_mission_pause_message()
+                await self.publish_message(pause_message, drone_name)
+                return
+        finally:
             self.occupied_nodes_lock.release()
-            await self.get_mission_pause_message()
-            await self.publish_message(message, drone_name)
-            return
+
             
 
 
     async def mission_register(self, drone_name):
         mission_file = {}
-        if drone in self.mission_file_cache:
+        if drone_name in self.mission_file_cache:
             mission_file = self.mission_file_cache[drone_name]
         
-        elif drone not in self.mission_file_cache:
+        else:
             mission_file = database.getMissionFileByDrone(drone_name)
             self.mission_file_cache[drone_name] = mission_file
 
-        self.mission_lists[drone_name] = mission_file['way_points']
+        self.mission_lists[drone_name] = mission_file['mission']
 
         return
 
@@ -49,17 +56,19 @@ class TaskManager():
         second_node = mission[1]
 
         while True:
-            self.occupied_nodes_lock.acquire()
-            if (await self.isValidNodes([first_node, second_node])):
-                self.occupied_nodes.append(first_node)
-                self.occupied_nodes.append(second_node)
+            try:
+                self.occupied_nodes_lock.acquire()
+                if (await self.isValidNodes([first_node, second_node])):
+                    self.occupied_nodes.append(first_node)
+                    self.occupied_nodes.append(second_node)
+                    messages = await self.get_mission_start_messages(mission)
+                    await self.publish_messages(messages, drone_name)
+                    return
+                else:
+                    await asyncio.sleep(1)
+            finally:
                 self.occupied_nodes_lock.release()
-                messages = await self.get_mission_start_messages(mission)
-                await self.publihs_messages(messages, drone_name)
-                return
-            else:
-                self.occupied_nodes_lock.release()
-                await asyncio.sleep(1)
+
         
 
     async def isValidNode(self, node):
@@ -77,18 +86,18 @@ class TaskManager():
 
     async def get_mission_start_messages(self, mission):
         messages = []
-        message = {
+        messages.append({
             'header': 'upload_mission', 
             'contents': {'mission': mission}
-        }
-        message = {
+        })
+        messages.append({
         'header': 'takeoff',
         'contents': {'takeoff_alt': 10}
-        }
-        message = {
+        })
+        messages.append({
             'header': 'start_mission',
             'contents': {}
-        }
+        })
         return messages
 
 

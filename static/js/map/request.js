@@ -75,9 +75,9 @@ export async function deliverStartRequest() {
 
     if (response.ok) {
         // generateMissionFile 성공 처리
-        console.log('generateMissionFile successful');
+        console.log('deliverStart successful');
     } else {
         // 오류 처리
-        console.error('generateMissionFile failed');
+        console.error('deliverStart failed');
     }
 }

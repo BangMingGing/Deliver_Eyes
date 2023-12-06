@@ -10,3 +10,8 @@ def getUserFromCookies(cookies):
         return None
 
 
+def getRoute(mission):
+    route = []
+    for (lon, lat, alt) in mission:
+        route.append([lon, lat])
+    return route

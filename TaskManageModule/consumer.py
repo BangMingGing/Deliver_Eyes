@@ -22,6 +22,14 @@ async def task_consume(connection):
             )
         )
 
+    async def publish_messages(self, messages, drone_name):
+        for message in messages:
+            await self.exchange.publish(
+                aio_pika.Message(body=pickle.dumps(message)), 
+                routing_key=f"to{drone_name}"
+            )
+        return
+
     async def consume():
         async for message in queue:
             async with message.process():
@@ -38,10 +46,9 @@ async def task_consume(connection):
                 elif header == 'mission_start':
                     await task_manager.mission_register(drone_name)
                     await task_manager.mission_start(drone_name)
-
                 
-                
-                print(f"Received message: {message_data}")
+                print('message complete')
+                print('message : ', message)
 
     print(" -- [Task Consumer] started")
 
