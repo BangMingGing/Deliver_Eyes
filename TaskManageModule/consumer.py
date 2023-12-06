@@ -1,48 +1,81 @@
-import pika
+import aio_pika
+import asyncio
 import pickle
 
-from taskManager import TaskManager
+from task_manager import TaskManager
+from configuration import RABBITMQ_CONFIG
 
-RABBITMQ_SERVER_IP = '203.255.57.129'
-RABBITMQ_SERVER_PORT = '5672'
-
-class Consumer():
-    def __init__(self):
-        self.credentials = pika.PlainCredentials('rabbitmq', '1q2w3e4r')
-        self.connection = pika.BlockingConnection(pika.ConnectionParameters(RABBITMQ_SERVER_IP, RABBITMQ_SERVER_PORT, 'vhost', self.credentials))
-        self.channel = self.connection.channel()
-
-        self.queue_name = 'TaskManager'
-        self.exchange_name = 'TaskManager'
-
-        # Queue 선언
-        queue = self.channel.queue_declare(self.queue_name)
-        
-        # Queue-Exchange Binding
-        self.channel.queue_bind(exchange=self.exchange_name, queue=self.queue_name, routing_key=f'to{self.queue_name}')
-
-        # TaskManager 인스턴스 생성
-        self.task_manager = TaskManager()
-
+async def task_consume(connection):
+    channel = await connection.channel()
+    exchange = aio_pika.Exchange(channel, RABBITMQ_CONFIG.TASK_EXCHANGE, type=aio_pika.ExchangeType.DIRECT)
+    await exchange.declare()
+    queue = await channel.declare_queue(RABBITMQ_CONFIG.TASK_QUEUE)
+    await queue.bind(exchange, f"to{queue}")
     
-    def callback(self, ch, method, properties, body):
-        message = pickle.loads(body, encoding='bytes')
-        
-        drone = message['drone']
+    task_manager = TaskManager(exchange)
 
-        self.task_manager.run(drone)
+    async def publish_message(message, drone_name):
+        await exchange.publish(
+            aio_pika.Message(
+                body=pickle.dumps(message), 
+                routing_key=f"to{drone_name}"
+            )
+        )
 
-        ch.basic_ack(deliver_tag=method.deliver_tag)
+    async def consume():
+        async for message in queue:
+            async with message.process():
+                message = pickle.loads(message.body, encoding='bytes')
+                
+                drone_name = message['drone_name']
+                header = message['header']
+                contents = message['contents']
+
+                if header == 'mission_valid':
+                    current_mission = contents['current_mission']
+                    await task_manager.mission_valid(drone_name, current_mission)
+
+                elif header == 'mission_start':
+                    await task_manager.mission_register(drone_name)
+                    await task_manager.mission_start(drone_name)
+
+                
+                
+                print(f"Received message: {message_data}")
+
+    print(" -- [Task Consumer] started")
+
+    while True:
+        await consume()
 
 
-    def consume(self):
-        self.channel.basic_qos(prefetch_count=1)
-        self.channel.basic_consume(on_message_callback=self.callback, queue=self.queue_name)
-        print(f'TaskManager Start Consuming')
-        self.channel.start_consuming()
+async def rabbitmq_connect():
+    connection = await aio_pika.connect_robust(
+        host=RABBITMQ_CONFIG.SERVER_IP,
+        port=RABBITMQ_CONFIG.SERVER_PORT,
+        login=RABBITMQ_CONFIG.USER,
+        password=RABBITMQ_CONFIG.PASSWORD,
+        virtualhost=RABBITMQ_CONFIG.HOST,
+    )
+    print(" -- [Task Consumer] Connected to Rabbitmq")
+    return connection
 
 
+async def main():
+    loop = asyncio.get_event_loop()
 
-if __name__ == '__main__':
-    consumer = Consumer()
-    consumer.consume()
+    connection = await rabbitmq_connect()
+
+    consumer_task = loop.create_task(task_consume(connection))
+
+    try:
+        await asyncio.gather(consumer_task)
+    except KeyboardInterrupt:
+        pass
+    finally:
+        await connection.close()
+        print("Connection closed")
+
+
+if __name__ == "__main__":
+    asyncio.run(main())
