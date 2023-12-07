@@ -89,7 +89,7 @@ class TaskManager():
         elif direction == 'reverse':
             message = await utils.get_reverse_mission_finished_message()
             await self.publish_message(message, drone_name)
-            await self.delete_occupied_node(mission[len(mission)])
+            await self.delete_occupied_node(mission[len(mission)-1])
             del self.mission_lists[drone_name]
             del self.mission_file_cache[drone_name]
         return
