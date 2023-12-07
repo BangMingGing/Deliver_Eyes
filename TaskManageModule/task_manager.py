@@ -83,7 +83,7 @@ class TaskManager():
         if direction == 'forward':
             message = await utils.get_forward_mission_finished_message()
             await self.publish_message(message, drone_name)
-            await self.delete_occupied_node(mission[len(mission)])
+            await self.delete_occupied_node(mission[len(mission)-1])
             del self.mission_lists[drone_name]
         # 역방향(복귀) 미션의 경우 랜딩 명령 전달
         elif direction == 'reverse':

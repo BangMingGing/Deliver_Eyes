@@ -1,3 +1,5 @@
+import { updateGps } from "./draw"
+
 // baseCampLocation 가져오기
 export async function getBasecamp() {
     const response = await fetch('/map/getBasecamp');
@@ -80,4 +82,28 @@ export async function deliverStartRequest() {
         // 오류 처리
         console.error('deliverStart failed');
     }
+}
+
+
+export function startGPSMonitoring(map) {
+    // 임의의 gps-point 소스 생성
+    map.addSource('gps-point', {
+        type: 'geojson',
+        data: {
+            type: 'FeatureCollection',
+            features: []
+        }
+    });
+
+    const eventSource = new EventSource("/gpsStreaming");
+
+    eventSource.onmessage = function (event) {
+        const gpsData = JSON.parse(event.data);
+        // gps-point 소스 업데이트
+        updateGPS(map, gpsData);
+    };
+    eventSource.onerror = function (error) {
+        console.error("EventSource failed:", error);
+        eventSource.close();
+    };
 }

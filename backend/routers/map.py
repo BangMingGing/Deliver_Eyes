@@ -76,7 +76,7 @@ async def generateMissionFile(request: Request):
 
     # 경로 가져오기
     try:
-        mission = database.getMission(user)
+        mission = database.getMissionByUser(user)
         route = utils.getRoute(mission)
         return JSONResponse(content={'route': route}, status_code=200)
     except:
@@ -96,7 +96,7 @@ async def deliverStart(request: Request):
         errors = 'Error occured while get drone from DB'
         return JSONResponse(content={'errors': errors}, status_code=400)
 
-    message = {"header": "mission_start", "drone_name": drone, "contents": {}}
+    message = {"header": "mission_start", "drone_name": drone, "contents": {'direction': 'forward'}}
     global task_publisher
     global loop
     task = loop.create_task(task_publisher.publish(message, RABBITMQ_CONFIG.TASK_QUEUE))
@@ -104,3 +104,22 @@ async def deliverStart(request: Request):
 
     response = "Deliver Start Success"
     return JSONResponse(content={'response': response}, status_code=200)
+
+
+@router.post("/gps_streaming")
+async def gps_streaming(request: Request):
+    user = utils.getUserFromCookies(request.cookies)
+    if not user:
+        return RedirectResponse(url="/login/", status_code=302)
+
+    drone_name = database.getDroneByUser(user)
+
+    return StreamingResponse(
+        utils.gps_event_generator(drone_name),
+        media_type="text/event-stream",
+        headers={"Cache-Control": "no-cache", "Connection": "keep-alive"},
+    )
+
+    
+
+    

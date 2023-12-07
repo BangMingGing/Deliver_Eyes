@@ -97,3 +97,11 @@ export function drawRoute(map, route) {
         },
     });
 }
+
+export function updateGPS(map, gpsData) {
+    const point = {
+        type: 'Point',
+        coordinates: gpsData
+    };
+    map.getSource('gps-point').setData(point);
+}
