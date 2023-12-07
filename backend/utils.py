@@ -1,3 +1,6 @@
+import asyncio
+import json
+
 from backend import token, database
 
 def getUserFromCookies(cookies):
@@ -19,6 +22,6 @@ def getRoute(mission):
 
 async def gps_event_generator(drone_name):
     while True:
-        lat, lon = database.getDroneStatusByDroneName(drone_name)
+        gps_data = database.getDroneStatusByDroneName(drone_name)
         yield f"data: {json.dumps(gps_data)}\n\n"
         await asyncio.sleep(1)

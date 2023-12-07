@@ -98,10 +98,39 @@ export function drawRoute(map, route) {
     });
 }
 
+
+export function initGPS(map) {
+    map.addSource('drone', {
+        type: 'geojson',
+        data: {
+            type: 'Feature',
+            geometry: {
+                type: 'Point',
+                coordinates: [0, 0]
+            },
+            properties: {}
+        }
+    });
+      
+    map.addLayer({
+        id: 'drone',
+        type: 'circle',
+        source: 'drone',
+        paint: {
+            'circle-color': 'blue',
+            'circle-radius': 6
+        }
+    });
+}
+
 export function updateGPS(map, gpsData) {
-    const point = {
-        type: 'Point',
-        coordinates: gpsData
-    };
-    map.getSource('gps-point').setData(point);
+    // console.log(gpsData)
+    map.getSource('drone').setData({
+        type: 'Feature',
+        geometry: {
+          type: 'Point',
+          coordinates: gpsData
+        },
+        properties: {}
+      });
 }

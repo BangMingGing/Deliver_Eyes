@@ -2,7 +2,7 @@ import asyncio
 
 from fastapi import APIRouter, Request
 from fastapi.templating import Jinja2Templates
-from fastapi.responses import JSONResponse, RedirectResponse
+from fastapi.responses import JSONResponse, RedirectResponse, StreamingResponse
 
 from backend import database, utils, rabbitmq
 from MFGModule import MFG
@@ -106,7 +106,7 @@ async def deliverStart(request: Request):
     return JSONResponse(content={'response': response}, status_code=200)
 
 
-@router.post("/gps_streaming")
+@router.get("/gps_streaming")
 async def gps_streaming(request: Request):
     user = utils.getUserFromCookies(request.cookies)
     if not user:

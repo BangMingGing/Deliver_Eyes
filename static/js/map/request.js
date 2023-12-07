@@ -1,4 +1,4 @@
-import { updateGps } from "./draw"
+import { updateGPS, initGPS } from "./draw.js";
 
 // baseCampLocation 가져오기
 export async function getBasecamp() {
@@ -87,15 +87,9 @@ export async function deliverStartRequest() {
 
 export function startGPSMonitoring(map) {
     // 임의의 gps-point 소스 생성
-    map.addSource('gps-point', {
-        type: 'geojson',
-        data: {
-            type: 'FeatureCollection',
-            features: []
-        }
-    });
-
-    const eventSource = new EventSource("/gpsStreaming");
+    initGPS(map)
+    
+    const eventSource = new EventSource("/map/gps_streaming");
 
     eventSource.onmessage = function (event) {
         const gpsData = JSON.parse(event.data);
