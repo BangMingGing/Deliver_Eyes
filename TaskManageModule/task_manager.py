@@ -1,15 +1,16 @@
 import aio_pika
 import asyncio
 import pickle
-import threading
+
 import database
+import utils
 
 class TaskManager():
     def __init__(self, exchange):
         self.mission_file_cache = {}
         self.mission_lists = {}
         self.occupied_nodes = []
-        self.occupied_nodes_lock = threading.Lock()
+        self.lock = asyncio.Lock()
 
         self.exchange = exchange
 
@@ -18,95 +19,94 @@ class TaskManager():
         mission = self.mission_lists[drone_name]
 
         if current_mission+1 == len(mission):
+            past_node = mission[current_mission-1]
+            await self.delete_node(past_node)
             return
         next_node = mission[current_mission+1]
 
-        try:
-            self.occupied_nodes_lock.acquire()
-            if (await self.isValidNode(next_node)):
-                self.occupied_nodes.append(next_node)
-                return
+        flag = await self.try_occypy_node(next_node)
+        if flag == False:
+            pause_message = await utils.get_mission_pause_message()
+            await self.publish_message(pause_message, drone_name)
+            return
 
-            else:
-                pause_message = await self.get_mission_pause_message()
-                await self.publish_message(pause_message, drone_name)
-                return
-        finally:
-            self.occupied_nodes_lock.release()
-
-            
+        elif flag == True:
+            if current_mission-1 >= 0:
+                past_node = mission[current_mission-1]
+                await self.delete_node(past_node)
+            return
 
 
-    async def mission_register(self, drone_name):
+    async def mission_register(self, drone_name, direction):
         mission_file = {}
         if drone_name in self.mission_file_cache:
             mission_file = self.mission_file_cache[drone_name]
-        
-        else:
+        elif drone_name not in self.mission_file_cache:
             mission_file = database.getMissionFileByDrone(drone_name)
             self.mission_file_cache[drone_name] = mission_file
 
-        self.mission_lists[drone_name] = mission_file['mission']
+        if direction == 'forward':
+            self.mission_lists[drone_name] = mission_file['mission']
+        elif direction == 'reverse':
+            self.mission_lists[drone_name] = mission_file['mission'].reverse()
+
 
         return
 
-    async def mission_start(self, drone_name):
+    async def mission_start(self, drone_name, direction):
         mission = self.mission_lists[drone_name]
         first_node = mission[0]
         second_node = mission[1]
 
         while True:
-            try:
-                self.occupied_nodes_lock.acquire()
-                if (await self.isValidNodes([first_node, second_node])):
-                    self.occupied_nodes.append(first_node)
-                    self.occupied_nodes.append(second_node)
-                    messages = await self.get_mission_start_messages(mission)
-                    await self.publish_messages(messages, drone_name)
-                    return
-                else:
-                    await asyncio.sleep(1)
-            finally:
-                self.occupied_nodes_lock.release()
+            flag = await self.try_occypy_node(first_node)
+            if flag == True:
+                messages = await utils.get_mission_start_messages(mission, direction)
+                await self.publish_messages(messages, drone_name)
+                return
+            elif flag == False:
+                await asyncio.sleep(1)
 
+
+    async def mission_finished(self, drone_name, direction):
+        if direction == 'forward':
+            message = await utils.get_forward_mission_finished_message()
+            await self.publish_message(message, drone_name)
+        elif direction == 'reverse':
+            message = await utils.get_reverse_mission_finished_message()
+            await self.publish_message(message, drone_name)
         
 
-    async def isValidNode(self, node):
-        if node in self.occupied_nodes:
-            return False
-        return True
+    async def try_occypy_node(self, node):
+        flag = True
+        async with self.lock:
+            if node in self.occupied_nodes:
+                flag = False
+            if flag == True:
+                self.occupied_nodes.append(node)
+                print(f"Add {node}")
+                print(f"Occupied_node : {self.occupied_nodes}")
+        return flag
     
 
-    async def isValidNodes(self, nodes):
-        for node in nodes:
-            if node in self.occupied_nodes:
-                return False
-        return True
+    async def try_occypy_nodes(self, nodes):
+        flag = True
+        async with self.lock:
+            for node in nodes:
+                if node in self.occupied_nodes:
+                    flag = False
+                    break
+                if flag == True:
+                    self.occupied_nodes.append(node)
+        return flag
+    
 
-
-    async def get_mission_start_messages(self, mission):
-        messages = []
-        messages.append({
-            'header': 'upload_mission', 
-            'contents': {'mission': mission}
-        })
-        messages.append({
-        'header': 'takeoff',
-        'contents': {'takeoff_alt': 10}
-        })
-        messages.append({
-            'header': 'start_mission',
-            'contents': {}
-        })
-        return messages
-
-
-    async def get_mission_pause_message(self):
-        message = {
-            'header': 'pause_mission',
-            'contents': {}
-        }
-        return message
+    async def delete_node(self, node):
+        async with self.lock:
+            self.occupied_nodes.remove(node)
+            print(f"Remove {node}")
+            print(f"Occupied_node : {self.occupied_nodes}")
+        return
 
 
     async def publish_message(self, message, drone_name):
