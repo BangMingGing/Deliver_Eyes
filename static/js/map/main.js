@@ -1,4 +1,4 @@
-import { getBasecamp, getNodes, generateMissionFile, deliverStartRequest, startGPSMonitoring } from "./request.js";
+import { getBasecamp, getNodes, generateMissionFile, deliverStartRequest, startGPSMonitoring, receiveCompleteRequest } from "./request.js";
 import { setDestinationMode, getSelectedLocation, setDefaultMode, findClosestNode } from "./utils.js";
 import { drawMap, drawMarker, drawMarkers, drawDestinationMarker, drawRoute } from "./draw.js";
 
@@ -55,10 +55,12 @@ async function main() {
         await deliverStartRequest();
         // GPS 모니터링 시작
         startGPSMonitoring(map)
+        // 수령 완료 버튼 활성화
+        receiveCompleteButton.disabled = false;
     });
     receiveCompleteButton.addEventListener('click', async function() {
         // 백엔드로 복귀 요청
-        
+        await receiveCompleteRequest();
         // 후 처리 과정
     });
 }

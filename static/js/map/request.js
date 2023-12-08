@@ -76,14 +76,13 @@ export async function deliverStartRequest() {
     });
 
     if (response.ok) {
-        // generateMissionFile 성공 처리
+        // deliverStart 성공 처리
         console.log('deliverStart successful');
     } else {
         // 오류 처리
         console.error('deliverStart failed');
     }
 }
-
 
 export function startGPSMonitoring(map) {
     // 임의의 gps-point 소스 생성
@@ -100,4 +99,23 @@ export function startGPSMonitoring(map) {
         console.error("EventSource failed:", error);
         eventSource.close();
     };
+}
+
+export async function receiveCompleteRequest() {
+    const response = await fetch('/map/receiveComplete', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+        }),
+    });
+
+    if (response.ok) {
+        // receiveComplete 성공 처리
+        console.log('receiveComplete successful');
+    } else {
+        // 오류 처리
+        console.error('receiveComplete failed');
+    }
 }

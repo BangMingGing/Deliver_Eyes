@@ -121,5 +121,23 @@ async def gps_streaming(request: Request):
     )
 
     
+@router.post("/receiveComplete")
+async def receiveComplete(request: Request):
+    user = utils.getUserFromCookies(request.cookies)
+    if not user:
+        return RedirectResponse(url="/login/", status_code=302)
 
-    
+    drone = database.getDroneByUser(user)
+
+    if not drone:
+        errors = 'Error occured while get drone from DB'
+        return JSONResponse(content={'errors': errors}, status_code=400)
+
+    message = {"header": "mission_start", "drone_name": drone, "contents": {'direction': 'reverse'}}
+    global task_publisher
+    global loop
+    task = loop.create_task(task_publisher.publish(message, RABBITMQ_CONFIG.TASK_QUEUE))
+    await asyncio.gather(task)
+
+    response = "Receive Complete Success"
+    return JSONResponse(content={'response': response}, status_code=200)
