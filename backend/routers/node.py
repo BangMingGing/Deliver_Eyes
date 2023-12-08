@@ -2,8 +2,7 @@ from fastapi import APIRouter, Request
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import JSONResponse, RedirectResponse
 
-from backend import database, utils, rabbitmq
-from MFGModule import MFG
+from backend import database, utils
 
 router = APIRouter(
     prefix='/node',
@@ -11,9 +10,6 @@ router = APIRouter(
 )
 
 templates = Jinja2Templates(directory='frontend')
-
-publisher = rabbitmq.Publisher()
-publisher.declareExchange("TaskManager")
 
 @router.get('/')
 async def node_page(request: Request):

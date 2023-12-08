@@ -46,18 +46,14 @@ async function main() {
 
     OrderingButton.addEventListener('click', async function () {
         const shippingWeight = prompt("Please input your Shipping Weight(kg)");
-        if (isValidNumber(shippingWeight)) {
+        if (shippingWeight === null || !isValidNumber(shippingWeight)) {
+            displayMessage("Invalid input. Please enter a valid number.");
+        } else {
             displayMessage(`Shipping Weight: ${shippingWeight}kg`);
-            payload = parseFloat(shippingWeight)
+            payload = parseFloat(shippingWeight);
             sendPayloadToServer(payload);
             selectDestinationButton.disabled = false;
-        } else {
-
-            displayMessage("Invalid input. Please enter a valid number.");
         }
-
-
-        selectDestinationButton.disabled = false;
     });
 
     selectDestinationButton.addEventListener('click', async function() {
@@ -88,21 +84,26 @@ async function main() {
         
         path = path.map((point, index) => [...point, altitudes[index]]);
         generateMissionFile(use_drone, path);
-
+        displayMessage(`Mission file upload successfulcce`);
         // 배송 시작 버튼 활성화
         deliverStartButton.disabled = false;
     })
 
     deliverStartButton.addEventListener('click', async function() {
+        displayMessage(`Delivery Start`);
         // 배송 시작 요청
         await deliverStartRequest();
         // GPS 모니터링 시작
         startGPSMonitoring(map)
         // 수령 완료 버튼 활성화
+        OrderingButton.disabled = true;
+        selectDestinationButton.disabled = true;
+        generateMissionFileButton.disabled = true;
         receiveCompleteButton.disabled = false;
     });
     receiveCompleteButton.addEventListener('click', async function() {
         // 백엔드로 복귀 요청
+        displayMessage('Delivery completed');
         await receiveCompleteRequest();
         // 후 처리 과정
     });

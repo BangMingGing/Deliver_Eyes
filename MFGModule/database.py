@@ -1,7 +1,7 @@
 import sys, os
 sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
 from pymongo import MongoClient
-from configration import DB_CONFIG
+from configuration import DB_CONFIG
 
 client = DB_CONFIG.CONNECTION_URL
 database = DB_CONFIG.DATABASE

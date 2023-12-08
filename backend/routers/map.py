@@ -113,9 +113,7 @@ async def generateMissionFile(request: Request):
 
     # 경로 가져오기
     try:
-        mission = database.getMissionByUser(user)
-        route = utils.getRoute(mission)
-        return JSONResponse(content={'route': route}, status_code=200)
+        return JSONResponse(content={}, status_code=200)
     except:
         errors = 'Error occured while get route from DB'
         return JSONResponse(content={'errors': errors}, status_code=400)
@@ -175,6 +173,6 @@ async def receiveComplete(request: Request):
     global loop
     task = loop.create_task(task_publisher.publish(message, RABBITMQ_CONFIG.TASK_QUEUE))
     await asyncio.gather(task)
-
     response = "Receive Complete Success"
+    
     return JSONResponse(content={'response': response}, status_code=200)

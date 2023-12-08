@@ -113,8 +113,8 @@ def generateMissionFile(use_drone, path, user):
     # 테스트 미션 파일
     missionFile = {
         'user': user,
-        'route': path, # [위도, 경도, 고도]
-        'drone': use_drone, 
+        'mission': path, # [위도, 경도, 고도]
+        'drone_name': use_drone, 
         'receiver_info': 'test_receiver_info'
     }
 
