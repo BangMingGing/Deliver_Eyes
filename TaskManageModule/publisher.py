@@ -30,3 +30,4 @@ class Publisher():
 
     def declareExchange(self, exchange_name):
         self.channel.exchange_declare(exchange_name)
+

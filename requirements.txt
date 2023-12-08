@@ -8,3 +8,5 @@ python-jose
 jose
 pika
 turf
+aio_pika
+asyncio

@@ -1,5 +1,8 @@
-from backend import token
-from backend import database
+import asyncio
+import json
+
+from backend import token, database
+
 def getUserFromCookies(cookies):
     try:
         access_token = cookies.get("access_token")
@@ -172,3 +175,16 @@ def getpath_coor(path):
             node_coor = database.getNodecoor(int(node_name))
             path_coor.append(node_coor)
     return path_coor
+
+def getRoute(mission):
+    route = []
+    for (lon, lat, alt) in mission:
+        route.append([lon, lat])
+    return route
+
+
+async def gps_event_generator(drone_name):
+    while True:
+        gps_data = database.getDroneStatusByDroneName(drone_name)
+        yield f"data: {json.dumps(gps_data)}\n\n"
+        await asyncio.sleep(1)

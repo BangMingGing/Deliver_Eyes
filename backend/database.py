@@ -1,6 +1,6 @@
 from pymongo import MongoClient
 
-from configration import DB_CONFIG
+from configuration import DB_CONFIG
 
 client = DB_CONFIG.CONNECTION_URL
 database = DB_CONFIG.DATABASE
@@ -61,15 +61,23 @@ def getNodeName(destination):
 def getRoute(user):
     missionFile = db['MissionFiles'].find_one({'user': user})
     if missionFile is not None:
-        return missionFile['route']
+        return missionFile['mission']
     
     return None
 
-def getDroneByName(user):
+def getDroneByUser(user):
     missionFile = db['MissionFiles'].find_one({'user': user})
     if missionFile is not None:
-        return missionFile['drone']
+        return missionFile['drone_name']
     
+    return None
+
+def getDroneStatusByDroneName(drone_name):
+    drone_status = db['DroneStatus'].find({'drone_name': drone_name}).sort('create_at', -1).limit(1)[0]
+    if drone_status is not None:
+        gps = drone_status['GPS_info']
+        return [gps['lon'], gps['lat']]
+
     return None
 
 def insert_node(node):
