@@ -52,13 +52,7 @@ def getNodeName(destination):
     node_name = str(data.get('node_name'))
     return node_name
 
-
-# def getaltitude(BC_name):
-#     projection = {'_id': 0, 'adj_node': 1}
-#     data = db["Basecamp"].find_one({'BC_name' : BC_name}, projection)
-#     BC_adj_node = data.get('')
-
-def getRoute(user):
+def getMissionByUser(user):
     missionFile = db['MissionFiles'].find_one({'user': user})
     if missionFile is not None:
         return missionFile['mission']
@@ -79,6 +73,16 @@ def getDroneStatusByDroneName(drone_name):
         return [gps['lon'], gps['lat']]
 
     return None
+
+def getMissionFileByUser(user):
+    missionFile = db['MissionFiles'].find_one({'user': user})
+    if missionFile is not None:
+        return missionFile
+    
+    return None
+
+
+## Node
 
 def insert_node(node):
     db['Nodes'].insert_one({'node':node})
@@ -158,7 +162,8 @@ def reupdate_node_adjnode(doc,new_adj_node):
     return True
 
 
-# for graph
+### graph
+
 def findBCname(nodename):
     bcname = db['Basecamp'].find_one({'BC_name': str(nodename)})
     return bcname

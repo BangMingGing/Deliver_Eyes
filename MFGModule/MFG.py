@@ -1,6 +1,7 @@
+import heapq
+
 from . import database
 from . import battery_consumption
-import heapq
 
 def set_drone_name(get_drone_name):
     global drone_name
@@ -13,7 +14,7 @@ def payload_calcurator(motor_thrust, drone_weight):
     return payload
 
 
-def drone_path_select(payload, goal_node):
+async def drone_path_select(payload, destination_node):
     #drone4selectlist = [[drone_name, motor_thrust drone_weight] ...]
     drone4selectlist = database.drone_info()
     available_drone = []
@@ -35,11 +36,11 @@ def drone_path_select(payload, goal_node):
         for info in BC_graph_list:
             start_node = info[0]
             graph = info[1]
-            shortest_path = dijkstra(graph, start_node, goal_node, payload, drone_name)
+            shortest_path = dijkstra(graph, start_node, destination_node, payload, drone_name)
             altitudes = {node: int(graph[node]['adj_node'][0][1]) if 'adj_node' in graph[node] and graph[node]['adj_node'] else 0 for node in graph}
             altitude_list = [altitudes[node] for node in shortest_path]
             altitudes[start_node] = int(database.findBCname(start_node).get('altitude', 0))
-            total_energy_consumption = battery_consumption.calculate_total_energy_consumption(graph, altitudes, shortest_path, goal_node, payload, drone_name)
+            total_energy_consumption = battery_consumption.calculate_total_energy_consumption(graph, altitudes, shortest_path, destination_node, payload, drone_name)
             
             print(f" drone name : {drone_name} total_energy_consumption : {total_energy_consumption}")
             if (total_battery_capacity > total_energy_consumption*2):
@@ -49,13 +50,51 @@ def drone_path_select(payload, goal_node):
 
     #사용 가능한 드론들 중 배터리 용량이 가장 적은 것으로 배정
     use_drone = min(usable_drone, key=lambda x: x[1], default=None)
+    selected_drone_name = None
     if use_drone:
         selected_drone_name = use_drone[0]
         print(f"Selected drone: {selected_drone_name}")
     else:
         print("No suitable drone found.")
-    data = [use_drone[0], shortest_path, altitude_list]
-    return data
+
+    mission = await makeMission(shortest_path, altitude_list)
+    print(selected_drone_name)
+    return selected_drone_name, mission
+
+async def makeMission(shortest_path, altitude_list):
+    mission = []
+    for i, path in enumerate(shortest_path):
+        coor = None
+        if 'bc' in path:
+            coor = database.getBCcoor(path)
+        else:
+            coor = database.getNodecoor(int(path))
+
+        lon = coor[0]
+        lat = coor[1]
+        alt = altitude_list[i]
+        
+        mission.append([lon, lat, alt])
+    
+    return mission
+
+
+async def saveMissionFile(user, drone_name, mission):
+    # 테스트 미션 파일
+    missionFile = {
+        'user': user,
+        'mission': mission, # [위도, 경도, 고도]
+        'drone_name': drone_name, 
+        'receiver_info': 'test_receiver_info'
+    }
+
+    # user의 과거 미션 파일 삭제
+    database.rmPastMissionFile(user)
+
+    # 미션 파일 DB에 저장
+    database.saveMissionFile(missionFile)
+
+    return missionFile
 
     
 
@@ -95,41 +134,25 @@ def dijkstra(graph, start, goal, payload, drone_name):
                 heapq.heappush(priority_queue, (energy_to_neighbor, neighbor, altitude))
 
 # 드론 경로를 생성하는 함수
-def generate_drone_path(start_node, goal_node,input_payload):
+def generate_drone_path(start_node, destination_node,input_payload):
     payload = input_payload
     graph = database.get_graph(start_node)
     altitudes = {node: int(graph[node]['adj_node'][0][1]) if 'adj_node' in graph[node] and graph[node]['adj_node'] else 0 for node in graph}
     altitudes[start_node] = int(database.findBCname(start_node).get('altitude', 0))
-    shortest_path = dijkstra(graph, start_node, goal_node, payload)
+    shortest_path = dijkstra(graph, start_node, destination_node, payload)
     if shortest_path:
-        total_energy_consumption = battery_consumption.calculate_total_energy_consumption(graph, altitudes, shortest_path, goal_node, payload, drone_name)
+        total_energy_consumption = battery_consumption.calculate_total_energy_consumption(graph, altitudes, shortest_path, destination_node, payload, drone_name)
         return shortest_path, total_energy_consumption
     else:
         print("경로를 찾을 수 없습니다.")
 
 
-def generateMissionFile(use_drone, path, user):
 
-    # 테스트 미션 파일
-    missionFile = {
-        'user': user,
-        'mission': path, # [위도, 경도, 고도]
-        'drone_name': use_drone, 
-        'receiver_info': 'test_receiver_info'
-    }
-
-    # user의 과거 미션 파일 삭제
-    database.rmPastMissionFile(user)
-
-    # 미션 파일 DB에 저장
-    database.saveMissionFile(missionFile)
-
-    return
 
 # # Input data(front)
 start_node = "bc1"
-# goal_node = "5"
+# destination_node = "5"
 # input_payload = 1.5
 
-# data = drone_path_select(input_payload, goal_node)
+# data = drone_path_select(input_payload, destination_node)
 # print(data[0], data[1])

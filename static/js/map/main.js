@@ -1,5 +1,5 @@
-import { getBasecamp, getNodes, generateMissionFile, deliverStartRequest, select_use_drone, path4draw, startGPSMonitoring, receiveCompleteRequest } from "./request.js";
-import { setDestinationMode, getSelectedLocation, setDefaultMode, findClosestNode, displayMessage, sendMessage,isValidNumber,sendPayloadToServer } from "./utils.js";
+import { getBasecamp, getNodes, generateMissionFileRequest, deliverStartRequest, startGPSMonitoring, receiveCompleteRequest } from "./request.js";
+import { setDestinationMode, getSelectedLocation, setDefaultMode, findClosestNode, displayMessage, sendMessage, isValidNumber } from "./utils.js";
 import { drawMap, drawMarker, drawMarkers, drawDestinationMarker, drawRoute } from "./draw.js";
 
 async function main() {
@@ -8,13 +8,10 @@ async function main() {
     let map;
     // 목적지 선택 모드인지 확인하는 변수
     let isSelectingDestination = false;
+    // 미션파일 관련 변수
     let destination;
     let destinationMarker;
-    let use_drone;
     let payload;
-    let data = [];
-    let path = [];
-    let altitudes;
     // 맵 초기화
     basecamp = await getBasecamp();
     nodes = await getNodes();
@@ -26,7 +23,6 @@ async function main() {
     //chatbox
     const chatInput = document.getElementById('chatInput');
     const messageSendButton = document.getElementById('messageSend');
-
 
     const OrderingButton = document.getElementById('OrderingButton');
     const selectDestinationButton = document.getElementById('selectDestinationButton');
@@ -45,13 +41,12 @@ async function main() {
     });
 
     OrderingButton.addEventListener('click', async function () {
-        const shippingWeight = prompt("Please input your Shipping Weight(kg)");
-        if (shippingWeight === null || !isValidNumber(shippingWeight)) {
-            displayMessage("Invalid input. Please enter a valid number.");
+        payload = await prompt("Please input your Shipping Weight(kg)");
+        if (!isValidNumber(payload)) {
+            displayMessage(`Invalid input. Please enter a valid number.`);
         } else {
-            displayMessage(`Shipping Weight: ${shippingWeight}kg`);
-            payload = parseFloat(shippingWeight);
-            sendPayloadToServer(payload);
+            displayMessage(`Payload Weight: ${payload}kg`);
+            payload = parseFloat(payload);
             selectDestinationButton.disabled = false;
         }
     });
@@ -72,21 +67,18 @@ async function main() {
     });
 
     generateMissionFileButton.addEventListener('click', async function() {
-        data = await select_use_drone(payload, destination)
-        use_drone =  data[0]
-        path = data[1]
-        altitudes = data[2]
-        displayMessage(`service drone : ${use_drone}`);
-        displayMessage(`path : ${path}`);
-
-        path = await path4draw(path)
-        drawRoute(map, path);
+        let missionFileInfo = await generateMissionFileRequest(payload, destination);
+        if (missionFileInfo != null) {
+            drawRoute(map, missionFileInfo.route);
+            let drone_name =  missionFileInfo.drone_name;
+            displayMessage(`Service drone : ${drone_name}`);
+            displayMessage(`Mission file upload successful`);
+            // 배송 시작 버튼 활성화
+            deliverStartButton.disabled = false;
+        } else {
+            displayMessage(`Mission file upload failed. Please retry`);
+        }
         
-        path = path.map((point, index) => [...point, altitudes[index]]);
-        generateMissionFile(use_drone, path);
-        displayMessage(`Mission file upload successfulcce`);
-        // 배송 시작 버튼 활성화
-        deliverStartButton.disabled = false;
     })
 
     deliverStartButton.addEventListener('click', async function() {

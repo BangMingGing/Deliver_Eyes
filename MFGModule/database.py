@@ -58,8 +58,26 @@ def get_graph(BC_name):
 def rmPastMissionFile(user):
     oldMissionFile = db['MissionFiles'].find_one({'user': user})
     if oldMissionFile:
-        db['MissionFiles'].delete_one({'user': user})
+        db['MissionFiles'].delete_many({'user': user})
 
 def saveMissionFile(missionFile):    
     db['MissionFiles'].insert_one(dict(missionFile))
     return True
+
+
+
+
+## Mission File generate
+
+def getBCcoor(BC_name):
+    projection = {'_id': 0, 'BC_coor': 1}
+    data = db['Basecamp'].find_one({'BC_name' : BC_name}, projection)
+    basecamp_coor = data.get('BC_coor')
+    print("basecamp_coor : " ,basecamp_coor)
+    return basecamp_coor
+
+def getNodecoor(node_name):
+    projection = {'_id': 0, 'node_coor': 1}
+    data = db['Nodes'].find_one({'node_name' : node_name}, projection)
+    node_coor = data.get('node_coor')
+    return node_coor

@@ -102,25 +102,14 @@ export async function sendMessage() {
 }
 
 // 화면에 메시지 표시 함수
-export async function displayMessage(message) {
+export function displayMessage(message) {
+    const chatDisplay = document.getElementById('chatDisplay');
     const messageElement = document.createElement('div');
     messageElement.textContent = `${message}`;
     chatDisplay.appendChild(messageElement);
 }
 
 // 숫자 유효성 검사 함수
-export async function isValidNumber(value) {
+export function isValidNumber(value) {
     return !isNaN(parseFloat(value)) && isFinite(value);
-}
-
-// 실제로는 서버로 데이터를 보내는 로직으로 교체해야 할 함수
-export async function sendPayloadToServer(payload) {
-    // 여기에 실제로 서버로 데이터를 전송하는 로직을 추가
-    console.log("Sending payload to server:", payload);
-}
-
-//페이로드를 통해 추력 사양을 고려하여 사용할 드론 선정
-export async function select_use_drone(payload){
-    
-    return use_drone
 }

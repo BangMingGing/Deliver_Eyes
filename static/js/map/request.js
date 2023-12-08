@@ -36,9 +36,9 @@ export async function getNodes() {
     }
 }
 
-// 드론 선정
-export async function select_use_drone(payload, destination) {
-    const response = await fetch('/map/select_use_drone', {
+// 미션파일 생성 요청
+export async function generateMissionFileRequest(payload, destination) {
+    const response = await fetch('/map/generateMissionFile', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -48,69 +48,22 @@ export async function select_use_drone(payload, destination) {
             destination
         }),
     });
+
     const responseData = await response.json();
+
     if (response.ok) {
-        // select_use_drone 성공 처리
-        const drone_path_data = responseData.drone_path_data;
-        console.log('select drone and path successful');
+        // generateMissionFileRequest 성공 처리
+        console.log('generateMissionFileRequest successful');
         return new Promise((resolve) => {
-            resolve(drone_path_data);
+            resolve(responseData);
         })
     } else {
         // 오류 처리
-        const errors = responseData.errors;
-        console.error('select use_drone failed', errors);
+        console.error('generateMissionFileRequest failed');
     }
 }
 
-export async function path4draw(path) {
-    const response = await fetch('/map/path4draw', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-            path
-        }),
-    });
-
-    const responseData = await response.json();
-    if (response.ok) {
-        // path4draw 성공 처리
-        const path_coor = responseData.path_coor;
-        console.log('path4draw successful');
-        return new Promise((resolve) => {
-            resolve(path_coor);
-        })
-    } else {
-        // 오류 처리
-        const errors = responseData.errors;
-        console.error('path4draw failed', errors);
-    }
-}
-
-
-// 경로 생성 요청
-export async function generateMissionFile(use_drone, path) {
-    const response = await fetch('/map/generateMissionFile', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-            use_drone,
-            path
-        }),
-    });
-    if (response.ok) {
-        // generateMissionFile 성공 처리
-        console.log('generateMissionFile successful');
-    } else {
-        // 오류 처리
-        console.error('generateMissionFile failed');
-    }
-}
-
+// 배송 시작 요청
 export async function deliverStartRequest() {
     const response = await fetch('/map/deliverStart', {
         method: 'POST',
@@ -130,6 +83,7 @@ export async function deliverStartRequest() {
     }
 }
 
+// GPS 모니터링 시작
 export function startGPSMonitoring(map) {
     // 임의의 gps-point 소스 생성
     initGPS(map)
@@ -147,6 +101,7 @@ export function startGPSMonitoring(map) {
     };
 }
 
+// 수령 완료 요청
 export async function receiveCompleteRequest() {
     const response = await fetch('/map/receiveComplete', {
         method: 'POST',
