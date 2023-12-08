@@ -1,32 +1,38 @@
-import { getBasecamp, getNodes, generateMissionFile, deliverStartRequest } from "./request.js";
-import { setDestinationMode, getSelectedLocation, setDefaultMode, findClosestNode } from "./utils.js";
-import { drawMap, drawMarker, drawMarkers, drawDestinationMarker, drawRoute } from "./draw.js";
+import { getBasecamp, getNodes, insertnode, addNewneighbor, delete_node, drawGraph } from "./request.js";
+import { setDestinationMode, getSelectedLocation, getDistance, setDefaultMode, select_neighbor_node, getMaxBuildingHeight, getDeletedNodeNames, setDeletedNodeNames } from "./utils.js";
+import { drawMap, drawBCMarker, drawMarkers, drawDestinationMarker, drawRoute, drawmakenode } from "./draw.js";
 
 async function main() {
-    let basecamp;
+    let basecamps;
     let nodes;
     let map;
+
     // 목적지 선택 모드인지 확인하는 변수
     let isSelectingDestination = false;
-    let destination;
+
+    let selectedLocation;
     let destinationMarker;
-    let route;
-    
+    let markers = [];
+    let sourceCounter = 0;
+    let neighbor_node_list = [];
+    let selectedLocationName;
+    let delete_node_name = [];
     // 맵 초기화
-    basecamp = await getBasecamp();
+    basecamps = await getBasecamp();
     nodes = await getNodes();
-    map = await drawMap(basecamp);
-    drawMarker(map, basecamp);
-    drawMarkers(map, nodes);
+    map = await drawMap(basecamps[0].BC_coor);
+    markers = drawBCMarker(map, basecamps, markers);
+    markers = drawMarkers(map, nodes, markers);
+
 
 
     const selectNodeButton = document.getElementById('selectNodeButton');
-    const generateMissionFileButton = document.getElementById('generateMissionFileButton');
-    const deliverStartButton = document.getElementById('deliverStartButton');
-    const receiveCompleteButton = document.getElementById('receiveCompleteButton');
+    const completeNodeButton = document.getElementById('completeNodeButton');
+    const set_neighbor_node = document.getElementById('set_neighbor_node');
+    const CompleteButton = document.getElementById('CompleteButton');
+    const NodeDeleteButton = document.getElementById('NodeDeleteButton');
     
     selectNodeButton.addEventListener('click', async function() {
-        let selectedLocation;
 
         isSelectingDestination = await setDestinationMode(map, isSelectingDestination);
         selectedLocation = await getSelectedLocation(map);
@@ -34,30 +40,65 @@ async function main() {
             // 추가 노드 마커 그리기
             destinationMarker = drawDestinationMarker(map, selectedLocation, destinationMarker);
             // 미션파일 생성 버튼 활성화
-            generateMissionFileButton.disabled = false;            
+            completeNodeButton.disabled = false;            
         }
         isSelectingDestination = await setDefaultMode(map, isSelectingDestination);
     });
 
-    generateMissionFileButton.addEventListener('click', async function() {
-        // 미션파일 생성 요청
-        route = await generateMissionFile(basecamp, destination);
-        // 경로 그리기
-        drawRoute(map, route);
-        // 배송 시작 버튼 활성화
-        deliverStartButton.disabled = false;
+
+    completeNodeButton.addEventListener('click', async function() {
+        drawmakenode(map, selectedLocation,destinationMarker)
+        set_neighbor_node.disabled = false;
     })
 
-    deliverStartButton.addEventListener('click', async function() {
-        // 배송 시작 요청
-        await deliverStartRequest();
-        // GPS 모니터링 시작
-        // GPS 값 요청 시작
+
+    set_neighbor_node.addEventListener('click', async function() {
+        isSelectingDestination = await setDestinationMode(map, isSelectingDestination);
+        if (isSelectingDestination){
+            const neighbor_node = await select_neighbor_node(markers) 
+
+            const neighbor_node_name = neighbor_node.nodeName
+            const neighbor_node_coor = neighbor_node.coordinate
+
+            const max_height = await getMaxBuildingHeight(map, selectedLocation, neighbor_node.coordinate, 5)
+            const distance = await getDistance(selectedLocation[1],selectedLocation[0],neighbor_node_coor[1],neighbor_node_coor[0])
+
+            const route = [selectedLocation, neighbor_node_coor]
+
+            sourceCounter = drawRoute(map, route, sourceCounter)
+
+            neighbor_node_list.push([neighbor_node_name, max_height, distance])
+        }
+        isSelectingDestination = await setDefaultMode(map, isSelectingDestination);
+        CompleteButton.disabled = false;
     });
-    receiveCompleteButton.addEventListener('click', async function() {
-        // 백엔드로 복귀 요청
-        
-        // 후 처리 과정
+
+
+    CompleteButton.addEventListener('click', async function() {
+        delete_node_name = await getDeletedNodeNames()
+        if(delete_node_name > 0){
+            selectedLocationName = delete_node_name.pop()
+            insertnode(selectedLocationName,selectedLocation,neighbor_node_list)
+            addNewneighbor(selectedLocationName, neighbor_node_list)
+            setDeletedNodeNames(delete_node_name)
+        }
+        else{
+            selectedLocationName = Number(nodes.length) + 1
+            insertnode(selectedLocationName,selectedLocation,neighbor_node_list)
+            addNewneighbor(selectedLocationName, neighbor_node_list)
+        }
+        drawGraph()
+        location.reload()
+    });
+
+
+    NodeDeleteButton.addEventListener('click', async function() {
+        const deletenode = await select_neighbor_node(markers)
+        const node_name = await delete_node(deletenode.nodeName)
+        delete_node_name.push(node_name)
+        setDeletedNodeNames(delete_node_name)
+        drawGraph()
+        location.reload()
     });
 }
 

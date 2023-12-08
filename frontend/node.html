@@ -2,12 +2,15 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    
+
     <title>Deliver Eye - 로그인</title>
-    
-    <link rel='stylesheet' href='https://api.tiles.mapbox.com/mapbox-gl-js/v2.13.0/mapbox-gl.css'>
-    <script src='https://api.tiles.mapbox.com/mapbox-gl-js/v2.13.0/mapbox-gl.js'></script>
+    <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no">
+    <link href="https://api.mapbox.com/mapbox-gl-js/v2.14.1/mapbox-gl.css" rel="stylesheet">
+    <script src="https://api.mapbox.com/mapbox-gl-js/v2.14.1/mapbox-gl.js"></script>
+    <script src='https://unpkg.com/@turf/turf@6.3.0/turf.min.js'></script>
+    <!-- <link rel='stylesheet' href='https://api.tiles.mapbox.com/mapbox-gl-js/v2.13.0/mapbox-gl.css'> -->    
+    <!-- <script src='https://api.tiles.mapbox.com/mapbox-gl-js/v2.13.0/mapbox-gl.js'></script> -->
+
     <link rel="stylesheet" href="{{ url_for('static', path='/css/node.css') }}">
     
     <script type="module" src="{{ url_for('static', path='/js/node/draw.js') }}"></script>
@@ -19,10 +22,11 @@
     <div id="map-container">
         <div id="map"></div>
         <div id="buttonZone">
-            <button id="selectNodeButton">노드 삽입</button>
-            <button id="generateMissionFileButton" disabled="True">미션파일 생성</button>
-            <button id="deliverStartButton" disabled="True">배송 시작</button>
-            <button id="receiveCompleteButton" disabled="True">수령 완료</button>
+            <button id="selectNodeButton">노드 선택</button>
+            <button id="completeNodeButton" disabled="True">선택 완료</button>
+            <button id="set_neighbor_node" disabled="True">이웃 노드 설정</button> 
+            <button id="CompleteButton" disabled="True">완료</button>
+            <button id="NodeDeleteButton">노드삭제</button>
         </div>
         <div id="chatZone">
             <h2>메시지 창</h2>

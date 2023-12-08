@@ -6,9 +6,9 @@ export async function getBasecamp() {
 
     if (response.ok) {
         // getBaseCampLocation 성공 처리
-        const basecamp = responseData.basecamp;
+        const basecamps = responseData.basecamps;
         console.log('getBasecamp successful');
-        return basecamp;
+        return basecamps;
     } else {
         // 오류 처리
         const errors = responseData.errors;
@@ -23,7 +23,7 @@ export async function getNodes() {
     const responseData = await response.json();
 
     if (response.ok) {
-        // getBaseCampLocation 성공 처리
+        // getNodes 성공 처리
         const nodes = responseData.nodes;
         console.log('getNodes successful');
         return nodes;
@@ -34,50 +34,70 @@ export async function getNodes() {
     }
 }
 
-// 경로 생성 요청
-export async function generateMissionFile(basecamp, destination) {
-    const response = await fetch('/node/generateMissionFile', {
+export async function insertnode(selectedLocationName,selectedLocation,neighbor_node_list) {
+    const response = await fetch('/node/insertnode', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-            basecamp,
-            destination
+            selectedLocationName,
+            selectedLocation,
+            neighbor_node_list
         }),
     });
+}
 
+export async function addNewneighbor(selectedLocationName,neighbor_node_list) {
+    const response = await fetch('/node/addNewneighbor', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            selectedLocationName,
+            neighbor_node_list
+        }),
+    });
+}
+
+export async function delete_node(node_name) {
+    const response = await fetch('/node/delete_node', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            node_name
+        }),
+    });
+    
     const responseData = await response.json();
 
     if (response.ok) {
-        // generateMissionFile 성공 처리
-        const route = responseData.route;
-        console.log('generateMissionFile successful');
-        return new Promise((resolve) => {
-            resolve(route);
-        })
-
+        // getBaseCampLocation 성공 처리
+        const node_name = responseData.node_name;
+        console.log('get delete_node_name successful');
+        return node_name;
     } else {
         // 오류 처리
-        console.error('generateMissionFile failed');
+        const errors = responseData.errors;
+        console.error('get delete_node_name failed', errors);
+
     }
 }
 
-export async function deliverStartRequest() {
-    const response = await fetch('/node/deliverStart', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-        }),
-    });
-
+export async function drawGraph() {
+    const response = await fetch('/node/drawGraph');
     if (response.ok) {
-        // generateMissionFile 성공 처리
-        console.log('generateMissionFile successful');
+        // getBaseCampLocation 성공 처리
+        const message = responseData.message;
+        console.log('drawGraph successful');
+        return message;
     } else {
         // 오류 처리
-        console.error('generateMissionFile failed');
+        const errors = responseData.errors;
+        console.error('drawGraphe failed', errors);
+
     }
 }
