@@ -21,6 +21,13 @@ async def get_forward_mission_finished_message():
     }
     return message
 
+async def get_reverse_mission_finished_message():
+    message = {
+        'header': 'land',
+        'contents': {}
+    }
+    return message
+
 async def get_mission_pause_message():
     message = {
         'header': 'pause_mission',
