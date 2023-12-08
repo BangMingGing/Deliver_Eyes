@@ -36,29 +36,75 @@ export async function getNodes() {
     }
 }
 
+// 드론 선정
+export async function select_use_drone(payload, destination) {
+    const response = await fetch('/map/select_use_drone', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            payload,
+            destination
+        }),
+    });
+    const responseData = await response.json();
+    if (response.ok) {
+        // select_use_drone 성공 처리
+        const drone_path_data = responseData.drone_path_data;
+        console.log('select drone and path successful');
+        return new Promise((resolve) => {
+            resolve(drone_path_data);
+        })
+    } else {
+        // 오류 처리
+        const errors = responseData.errors;
+        console.error('select use_drone failed', errors);
+    }
+}
+
+export async function path4draw(path) {
+    const response = await fetch('/map/path4draw', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            path
+        }),
+    });
+
+    const responseData = await response.json();
+    if (response.ok) {
+        // path4draw 성공 처리
+        const path_coor = responseData.path_coor;
+        console.log('path4draw successful');
+        return new Promise((resolve) => {
+            resolve(path_coor);
+        })
+    } else {
+        // 오류 처리
+        const errors = responseData.errors;
+        console.error('path4draw failed', errors);
+    }
+}
+
+
 // 경로 생성 요청
-export async function generateMissionFile(basecamp, destination) {
+export async function generateMissionFile(use_drone, path) {
     const response = await fetch('/map/generateMissionFile', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-            basecamp,
-            destination
+            use_drone,
+            path
         }),
     });
-
-    const responseData = await response.json();
-
     if (response.ok) {
         // generateMissionFile 성공 처리
-        const route = responseData.route;
         console.log('generateMissionFile successful');
-        return new Promise((resolve) => {
-            resolve(route);
-        })
-
     } else {
         // 오류 처리
         console.error('generateMissionFile failed');

@@ -60,6 +60,43 @@ async def getNodes():
         return JSONResponse(content={'errors': errors}, status_code=400)
         
 
+@router.post('/select_use_drone')
+async def select_use_drone(request: Request):
+    user = utils.getUserFromCookies(request.cookies)
+    if not user:
+        return RedirectResponse(url="/login/", status_code=302)
+
+    requestJson = await request.json()
+    payload = requestJson.get('payload')
+    destination = requestJson.get('destination')
+    goal_node = database.getNodeName(destination)
+    # 드론 선정
+    try:
+        drone_path_data = MFG.drone_path_select(payload, goal_node)
+        return JSONResponse(content={'drone_path_data': drone_path_data}, status_code=200)
+    except:
+        errors = 'Error occured select use_drone'
+        return JSONResponse(content={'errors': errors}, status_code=400)
+
+@router.post('/path4draw')
+async def path4draw(request: Request):
+    user = utils.getUserFromCookies(request.cookies)
+    if not user:
+        return RedirectResponse(url="/login/", status_code=302)
+
+    requestJson = await request.json()
+    path = requestJson.get('path')
+    try:
+        path_coor = utils.getpath_coor(path)
+        return JSONResponse(content={'path_coor': path_coor}, status_code=200)
+    except:
+        errors = 'path4draw failed'
+        return JSONResponse(content={'errors': errors}, status_code=400)
+
+
+
+
+
 @router.post('/generateMissionFile')
 async def generateMissionFile(request: Request):
     user = utils.getUserFromCookies(request.cookies)
@@ -68,17 +105,15 @@ async def generateMissionFile(request: Request):
 
     requestJson = await request.json()
 
-    basecamp = requestJson.get('basecamp')
-    destination = requestJson.get('destination')
+    use_drone = requestJson.get('use_drone')
+    path = requestJson.get('path')
     
     # 미션 파일 생성
-    # MFG.generateMissionFile(basecamp, destination, user)
+    MFG.generateMissionFile(use_drone, path, user)
 
     # 경로 가져오기
     try:
-        mission = database.getMissionByUser(user)
-        route = utils.getRoute(mission)
-        return JSONResponse(content={'route': route}, status_code=200)
+        return JSONResponse(content={}, status_code=200)
     except:
         errors = 'Error occured while get route from DB'
         return JSONResponse(content={'errors': errors}, status_code=400)
@@ -138,6 +173,6 @@ async def receiveComplete(request: Request):
     global loop
     task = loop.create_task(task_publisher.publish(message, RABBITMQ_CONFIG.TASK_QUEUE))
     await asyncio.gather(task)
-
     response = "Receive Complete Success"
+    
     return JSONResponse(content={'response': response}, status_code=200)

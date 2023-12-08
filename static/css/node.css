@@ -52,7 +52,7 @@ body {
 }
 
 #chatDisplay {
-    height: 60%; /* Adjust the height as needed */
+    height: 25%; /* Adjust the height as needed */
     overflow-y: scroll;
     border: 1px solid #ccc;
     padding: 10px;

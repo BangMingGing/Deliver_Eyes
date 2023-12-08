@@ -54,7 +54,6 @@ export async function findClosestNode(selectedLocation, nodesLocations) {
             closestNode = nodeLocation;
         }
     }
-
     return new Promise((resolve) => {
         resolve(closestNode);
     })
@@ -85,4 +84,43 @@ async function getDistance(lat1, lon1, lat2, lon2) {
     const distance = R * c; // Radius of the Earth in kilometers
 
     return distance
+}
+
+// 메시지 전송 함수
+export async function sendMessage() {
+    // 입력된 메시지 가져오기
+    const userMessage = chatInput.value;
+
+    // 사용자 메시지를 화면에 표시
+    displayMessage('user', userMessage);
+
+    // 서버로 메시지 전송 (여기서는 간단히 콘솔에 출력)
+    console.log(`Sending to server: ${userMessage}`);
+
+    // 입력 필드 비우기
+    chatInput.value = '';
+}
+
+// 화면에 메시지 표시 함수
+export async function displayMessage(message) {
+    const messageElement = document.createElement('div');
+    messageElement.textContent = `${message}`;
+    chatDisplay.appendChild(messageElement);
+}
+
+// 숫자 유효성 검사 함수
+export async function isValidNumber(value) {
+    return !isNaN(parseFloat(value)) && isFinite(value);
+}
+
+// 실제로는 서버로 데이터를 보내는 로직으로 교체해야 할 함수
+export async function sendPayloadToServer(payload) {
+    // 여기에 실제로 서버로 데이터를 전송하는 로직을 추가
+    console.log("Sending payload to server:", payload);
+}
+
+//페이로드를 통해 추력 사양을 고려하여 사용할 드론 선정
+export async function select_use_drone(payload){
+    
+    return use_drone
 }
