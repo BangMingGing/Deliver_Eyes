@@ -43,6 +43,10 @@ async def task_consume(connection):
                     current_mission = contents['current_mission']
                     await task_manager.mission_valid(drone_name, current_mission)
 
+                elif header == 'resume_valid':
+                    current_mission = contents['current_mission']
+                    await task_manager.resume_valid(drone_name, current_mission)
+                
                 elif header == 'mission_start':
                     direction = contents['direction']
                     await task_manager.mission_register(drone_name, direction)
@@ -51,6 +55,7 @@ async def task_consume(connection):
                 elif header == 'mission_finished':
                     direction = contents['direction']
                     await task_manager.mission_finished(drone_name, direction)
+
                 
                 print('message complete')
                 print('message : ', message)

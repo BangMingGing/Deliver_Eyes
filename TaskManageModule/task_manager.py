@@ -41,6 +41,22 @@ class TaskManager():
             await self.delete_occupied_node(past_node)
             return
 
+    
+    async def resume_valid(self, drone_name, current_mission):
+        mission = self.mission_lists[drone_name]
+
+        # 선점 못했던 노드
+        next_node = mission[current_mission+1]
+
+        # 노드를 선점할때까지 반복
+        while True:
+            # 노드를 선점한 경우
+            if (await self.try_occypy_node(next_node)):
+                resume_message = await utils.get_resume_message()
+                await self.publish_message(resume_message, drone_name)
+                return
+            await asyncio.sleep(1)
+
 
     async def mission_register(self, drone_name, direction):
         mission_file = {}
@@ -57,7 +73,8 @@ class TaskManager():
             self.mission_lists[drone_name] = mission_file['mission']
         # 역방향(복귀) 미션을 미션리스트에 추가
         elif direction == 'reverse':
-            self.mission_lists[drone_name] = mission_file['mission'].reverse()
+            
+            self.mission_lists[drone_name] = mission_file['mission'][::-1]
 
         return
 
