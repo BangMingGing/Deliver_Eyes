@@ -69,11 +69,21 @@ def getDroneByUser(user):
 def getDroneStatusByDroneName(drone_name):
     drone_status = db['DroneStatus'].find({'drone_name': drone_name}).sort('create_at', -1).limit(1)[0]
     if drone_status is not None:
-        gps = drone_status['GPS_info']
-        return [gps['lon'], gps['lat']]
+        return drone_status
 
     return None
 
+def getFaceRecogResultByDroneName(drone_name):
+    query = {"drone_name": drone_name}
+    projection = {"_id": 0, "face_recog_result": 1}
+
+    result = db['MissionFiles'].find_one(query, projection)
+
+    if result:
+        return result.get("face_recog_result")
+    else:
+        return None
+    
 def getMissionFileByUser(user):
     missionFile = db['MissionFiles'].find_one({'user': user})
     if missionFile is not None:

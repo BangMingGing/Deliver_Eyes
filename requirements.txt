@@ -3,6 +3,7 @@ uvicorn
 jinja2
 passlib
 pymongo==3.11
+dnspython
 python-multipart
 python-jose
 jose
@@ -10,3 +11,9 @@ pika
 turf
 aio_pika
 asyncio
+
+torch
+torchvision
+torchaudio
+opencv-python
+numpy

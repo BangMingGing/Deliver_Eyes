@@ -12,3 +12,8 @@ async function goToMapPage() {
 async function goToNodePage() {
     window.location.href = '/node/';
 }
+
+// 얼굴 등록 창으로 이동하는 함수
+async function goToFacePage() {
+    window.location.href = '/face/';
+}

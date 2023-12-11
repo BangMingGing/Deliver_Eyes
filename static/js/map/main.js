@@ -1,4 +1,4 @@
-import { getBasecamp, getNodes, generateMissionFileRequest, deliverStartRequest, startGPSMonitoring, receiveCompleteRequest } from "./request.js";
+import { getBasecamp, getNodes, generateMissionFileRequest, deliverStartRequest, startGPSMonitoring, faceRecogStartRequest, startFaceRecogResultMonitoring, passwordCertifyRequest, receiveCompleteRequest } from "./request.js";
 import { setDestinationMode, getSelectedLocation, setDefaultMode, findClosestNode, displayMessage, sendMessage, isValidNumber } from "./utils.js";
 import { drawMap, drawMarker, drawMarkers, drawDestinationMarker, drawRoute } from "./draw.js";
 
@@ -28,6 +28,7 @@ async function main() {
     const selectDestinationButton = document.getElementById('selectDestinationButton');
     const generateMissionFileButton = document.getElementById('generateMissionFileButton');
     const deliverStartButton = document.getElementById('deliverStartButton');
+    const faceRecogStartButton = document.getElementById('faceRecogStartButton')
     const receiveCompleteButton = document.getElementById('receiveCompleteButton');
    
     chatInput.addEventListener('keydown', function(event) {
@@ -85,14 +86,43 @@ async function main() {
         displayMessage(`Delivery Start`);
         // 배송 시작 요청
         await deliverStartRequest();
-        // GPS 모니터링 시작
-        startGPSMonitoring(map)
+        // GPS 모니터링 시작, 목적지 도착 시 얼굴인식 버튼 활성화
+        startGPSMonitoring(map, faceRecogStartButton)
         // 수령 완료 버튼 활성화
         OrderingButton.disabled = true;
         selectDestinationButton.disabled = true;
         generateMissionFileButton.disabled = true;
-        receiveCompleteButton.disabled = false;
+        deliverStartButton.disabled = true;
     });
+    
+    faceRecogStartButton.addEventListener('click', async function() {
+        // 얼굴인식 시작 요청
+        await faceRecogStartRequest();
+        // 얼굴인식 결과 모니터링
+        let faceRecogResult;
+        await new Promise((resolve) => {
+            startFaceRecogResultMonitoring(function(result) {
+                faceRecogResult = result;
+                resolve();
+            });
+        });
+        // 얼굴인식 결과에 따른 처리
+        if (faceRecogResult == true) {
+            displayMessage('Face recognition succeeded. Drone is landing');
+            receiveCompleteButton.disabled = false;
+        } else if (faceRecogResult == false) {
+            displayMessage('Face recognition failed. Please input your password');
+            const password = await prompt("Please input your password");
+            passwordCertifyResult = await passwordCertifyRequest(password);
+            if (passwordCertifyResult) {
+                receiveCompleteButton.disabled = false;
+            } else {
+                displayMessage('Password Certify failed. Drone return to home');
+            }
+        }
+        
+    })
+
     receiveCompleteButton.addEventListener('click', async function() {
         // 백엔드로 복귀 요청
         displayMessage('Delivery completed');

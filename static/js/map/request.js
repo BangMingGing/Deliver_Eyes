@@ -84,21 +84,86 @@ export async function deliverStartRequest() {
 }
 
 // GPS 모니터링 시작
-export function startGPSMonitoring(map) {
+export function startGPSMonitoring(map, faceRecogStartButton) {
     // 임의의 gps-point 소스 생성
     initGPS(map)
     
     const eventSource = new EventSource("/map/gps_streaming");
 
     eventSource.onmessage = function (event) {
-        const gpsData = JSON.parse(event.data);
+        const eventData = JSON.parse(event.data);
         // gps-point 소스 업데이트
-        updateGPS(map, gpsData);
+        updateGPS(map, eventData.gps_data);
+        // face_recog_start_flag 확인
+        if (eventData.face_recog_start_flag) {
+            faceRecogStartButton.disabled = false;
+        }
     };
     eventSource.onerror = function (error) {
         console.error("EventSource failed:", error);
         eventSource.close();
     };
+}
+
+// 얼굴인식 시작 요청
+export async function faceRecogStartRequest() {
+    const response = await fetch('/map/faceRecogStart', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+        }),
+    });
+
+    if (response.ok) {
+        // faceRecogStart 성공 처리
+        console.log('faceRecogStart successful');
+    } else {
+        // 오류 처리
+        console.error('faceRecogStart failed');
+    }
+}
+
+// 얼굴인식 결과 모니터링 시작
+export function startFaceRecogResultMonitoring(faceRecogResultCallback) {
+    
+    const eventSource = new EventSource("/map/face_recog_result_streaming");
+
+    eventSource.onmessage = function (event) {
+        const eventData = JSON.parse(event.data);
+        // face_recog_result 확인
+        const face_recog_result = eventData.face_recog_result;
+        if (face_recog_result != null) {
+            faceRecogResultCallback(face_recog_result);
+            eventSource.close();
+        }
+    };
+    eventSource.onerror = function (error) {
+        console.error("EventSource failed:", error);
+        eventSource.close();
+    };
+}
+
+// 비밀번호로 인증 요청
+export async function passwordCertifyRequest(password) {
+    const response = await fetch('/map/passwordCertify', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            password
+        }),
+    });
+
+    if (response.ok) {
+        // passwordCertify 성공 처리
+        console.log('passwordCertify successful');
+    } else {
+        // 오류 처리
+        console.error('passwordCertify failed');
+    }
 }
 
 // 수령 완료 요청
@@ -115,8 +180,14 @@ export async function receiveCompleteRequest() {
     if (response.ok) {
         // receiveComplete 성공 처리
         console.log('receiveComplete successful');
+        return new Promise((resolve) => {
+            resolve(true);
+        })
     } else {
         // 오류 처리
         console.error('receiveComplete failed');
+        return new Promise((resolve) => {
+            resolve(false);
+        })
     }
 }

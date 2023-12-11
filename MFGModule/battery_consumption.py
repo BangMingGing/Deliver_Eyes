@@ -7,28 +7,6 @@ air_density = 1.225  # kg/m^3 (standard value)
 roll_deg = 15
 drag_coefficient = 1.49
 velocity = 1.5
-# drone_name = get_drone_name()
-
-# def get_drone_name():
-#     from MFG import drone_name
-#     get_drone_name = drone_name
-#     print(get_drone_name)
-#     return get_drone_name
-
-# drone_name = get_drone_name()
-
-
-# print("bt drone name: " , drone_name)
-# drone_data = database.get_drone_spec(drone_name)
-
-# # motor_efficiency = drone_data['motor_efficiency']
-# # battery_efficiency = drone_data['battery_efficiency']
-# # default_voltage = drone_data['default_voltage']
-# # total_battery_capacity_mah = drone_data['total_battery_capacity_mah']
-# # drone_weight = drone_data['drone_weight']
-# # drone_cross_sectional_area = drone_data['drone_cross_sectional_area']
-# # propeller_efficiency = drone_data['propeller_efficiency']
-# # thrust_coefficient = drone_data['thrust_coefficient']
 
 
 

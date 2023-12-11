@@ -21,6 +21,7 @@ async def drone_path_select(payload, destination_node):
     #페이로드를 고려하여 이용가능한 드론 선정
     for drone in drone4selectlist : 
         caculate_payload = payload_calcurator(drone[1],drone[2])
+        print(caculate_payload)
         if (caculate_payload > payload ):
             available_drone.append([drone[0], drone[3]])
     print(f"available_drone is {available_drone}")
@@ -84,8 +85,7 @@ async def saveMissionFile(user, drone_name, mission):
     missionFile = {
         'user': user,
         'mission': mission, # [위도, 경도, 고도]
-        'drone_name': drone_name, 
-        'receiver_info': 'test_receiver_info'
+        'drone_name': drone_name
     }
 
     # user의 과거 미션 파일 삭제
