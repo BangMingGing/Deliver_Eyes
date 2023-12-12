@@ -126,10 +126,4 @@ def generateMissionFile(use_drone, path, user):
 
     return
 
-# # Input data(front)
 start_node = "bc1"
-# goal_node = "5"
-# input_payload = 1.5
-
-# data = drone_path_select(input_payload, goal_node)
-# print(data[0], data[1])

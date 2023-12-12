@@ -118,9 +118,3 @@ export async function sendPayloadToServer(payload) {
     // 여기에 실제로 서버로 데이터를 전송하는 로직을 추가
     console.log("Sending payload to server:", payload);
 }
-
-//페이로드를 통해 추력 사양을 고려하여 사용할 드론 선정
-export async function select_use_drone(payload){
-    
-    return use_drone
-}

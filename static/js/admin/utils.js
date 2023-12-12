@@ -193,10 +193,55 @@ export async function getDeletedNodeNames() {
     });
 }
 
+// for node delete
 
 // 로컬 스토리지에 삭제된 노드 이름을 저장하는 함수
 export async function setDeletedNodeNames(names) {
     localStorage.setItem('deletedNodeNames', JSON.stringify(names));
 }
+
+
+// 로컬 스토리지에서 미션 파일에 저장된 드론 이름을 가져오는 함수
+export async function getStorageDroneNames() {
+    const storedData = localStorage.getItem('dronenames');
+    
+    // 저장된 데이터가 있을 경우 JSON 파싱하여 반환
+    if (storedData) {
+        return JSON.parse(storedData);
+    }
+    
+    // 저장된 데이터가 없을 경우 빈 배열 반환 또는 다른 기본값 반환
+    return [];
+}
+
+// for monitoring
+
+
+// 로컬 스토리지에 미션 파일에 저장된 드론 이름을 저장하는 함수
+export async function setStorageDroneNames(drone_names) {
+    localStorage.setItem('dronenames', JSON.stringify(drone_names));
+}
+
+export async function insertStorageDroneNames(drone_name) {
+    // 로컬 스토리지에서 드론 이름 배열을 가져오기
+    const existingDroneNames = await getdronenames();
+    // 특정 drone_name을 배열에 추가하고 새로운 배열 생성
+    const updatedDroneNames = existingDroneNames.concat(drone_name);
+    // 로컬 스토리지에 업데이트된 배열 저장
+    setStorageDroneNames(updatedDroneNames);
+}
+
+
+
+export async function deleteStorageDroneNames(drone_name) {
+    // 로컬 스토리지에서 드론 이름 배열을 가져오기
+    const existingDroneNames = await getdronenames();
+    // 특정 drone_name을 배열에서 제거
+    const updatedDroneNames = existingDroneNames.filter(name => name !== drone_name);
+    // 로컬 스토리지에 업데이트된 배열 저장
+    console.log("updatedDroneNames :  ",updatedDroneNames)
+    setStorageDroneNames(updatedDroneNames);
+}
+
 
 
