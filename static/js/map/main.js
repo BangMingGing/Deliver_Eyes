@@ -44,9 +44,9 @@ async function main() {
     OrderingButton.addEventListener('click', async function () {
         payload = await prompt("Please input your Shipping Weight(kg)");
         if (!isValidNumber(payload)) {
-            displayMessage(`Invalid input. Please enter a valid number.`);
+            await displayMessage(`Invalid input. Please enter a valid number.`);
         } else {
-            displayMessage(`Payload Weight: ${payload}kg`);
+            await displayMessage(`Payload Weight: ${payload}kg`);
             payload = parseFloat(payload);
             selectDestinationButton.disabled = false;
         }
@@ -72,18 +72,18 @@ async function main() {
         if (missionFileInfo != null) {
             drawRoute(map, missionFileInfo.route);
             let drone_name =  missionFileInfo.drone_name;
-            displayMessage(`Service drone : ${drone_name}`);
-            displayMessage(`Mission file upload successful`);
+            await displayMessage(`Service drone : ${drone_name}`);
+            await displayMessage(`Mission file upload successful`);
             // 배송 시작 버튼 활성화
             deliverStartButton.disabled = false;
         } else {
-            displayMessage(`Mission file upload failed. Please retry`);
+            await displayMessage(`Mission file upload failed. Please retry`);
         }
         
     })
 
     deliverStartButton.addEventListener('click', async function() {
-        displayMessage(`Delivery Start`);
+        await displayMessage(`Delivery Start`);
         // 배송 시작 요청
         await deliverStartRequest();
         // GPS 모니터링 시작, 목적지 도착 시 얼굴인식 버튼 활성화
@@ -108,16 +108,17 @@ async function main() {
         });
         // 얼굴인식 결과에 따른 처리
         if (faceRecogResult == true) {
-            displayMessage('Face recognition succeeded. Drone is landing');
+            await displayMessage('Face recognition succeeded. Drone is landing');
             receiveCompleteButton.disabled = false;
         } else if (faceRecogResult == false) {
-            displayMessage('Face recognition failed. Please input your password');
+            await displayMessage('Face recognition failed. Please input your password');
             const password = await prompt("Please input your password");
-            passwordCertifyResult = await passwordCertifyRequest(password);
+            const passwordCertifyResult = await passwordCertifyRequest(password);
             if (passwordCertifyResult) {
                 receiveCompleteButton.disabled = false;
+                await displayMessage('Password Certify Successed. Drone land');
             } else {
-                displayMessage('Password Certify failed. Drone return to home');
+                await displayMessage('Password Certify failed. Drone return to home');
             }
         }
         
@@ -125,7 +126,7 @@ async function main() {
 
     receiveCompleteButton.addEventListener('click', async function() {
         // 백엔드로 복귀 요청
-        displayMessage('Delivery completed');
+        await displayMessage('Delivery completed');
         await receiveCompleteRequest();
         // 후 처리 과정
     });

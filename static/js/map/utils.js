@@ -102,7 +102,7 @@ export async function sendMessage() {
 }
 
 // 화면에 메시지 표시 함수
-export function displayMessage(message) {
+export async function displayMessage(message) {
     const chatDisplay = document.getElementById('chatDisplay');
     const messageElement = document.createElement('div');
     messageElement.textContent = `${message}`;

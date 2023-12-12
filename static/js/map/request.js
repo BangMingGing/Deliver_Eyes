@@ -160,9 +160,15 @@ export async function passwordCertifyRequest(password) {
     if (response.ok) {
         // passwordCertify 성공 처리
         console.log('passwordCertify successful');
+        return new Promise((resolve) => {
+            resolve(true);
+        })
     } else {
         // 오류 처리
         console.error('passwordCertify failed');
+        return new Promise((resolve) => {
+            resolve(false);
+        })
     }
 }
 
@@ -180,14 +186,8 @@ export async function receiveCompleteRequest() {
     if (response.ok) {
         // receiveComplete 성공 처리
         console.log('receiveComplete successful');
-        return new Promise((resolve) => {
-            resolve(true);
-        })
     } else {
         // 오류 처리
         console.error('receiveComplete failed');
-        return new Promise((resolve) => {
-            resolve(false);
-        })
     }
 }
