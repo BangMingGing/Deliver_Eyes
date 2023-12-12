@@ -9,9 +9,10 @@ async def get_mission_start_messages(mission, direction, receiver):
             'header': 'upload_receiver',
             'contents': {'receiver': receiver}
         })
+    takeoff_alt = mission[0][2]
     messages.append({
     'header': 'takeoff',
-    'contents': {'takeoff_alt': 5}
+    'contents': {'takeoff_alt': takeoff_alt}
     })
     messages.append({
         'header': 'start_mission',

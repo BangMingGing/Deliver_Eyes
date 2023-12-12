@@ -6,14 +6,8 @@ from task_manager import TaskManager
 from FaceRecogModule.server import Server_Inferer
 from configuration import RABBITMQ_CONFIG
 
-async def task_consume(connection):
-    channel = await connection.channel()
-    exchange = aio_pika.Exchange(channel, RABBITMQ_CONFIG.TASK_EXCHANGE, type=aio_pika.ExchangeType.DIRECT)
-    await exchange.declare()
-    queue = await channel.declare_queue(RABBITMQ_CONFIG.TASK_QUEUE)
-    await queue.bind(exchange, f"to{queue}")
-    
-    task_manager = TaskManager(exchange)
+async def task_consume(queue, task_manager):
+
     server_inferer = Server_Inferer()
 
     async def consume():
@@ -79,6 +73,13 @@ async def task_consume(connection):
     while True:
         await consume()
 
+async def task_manager_status(task_manager):
+    while True:
+        print("Mission File Cache Saved Drones : ", task_manager.mission_file_cache.keys())
+        print("Mission Lists Saved Drones : ", task_manager.mission_lists.keys())
+        print("Occupied Nodes : ", task_manager.occupied_nodes)
+        await asyncio.sleep(1)
+
 
 async def rabbitmq_connect():
     connection = await aio_pika.connect_robust(
@@ -96,11 +97,19 @@ async def main():
     loop = asyncio.get_event_loop()
 
     connection = await rabbitmq_connect()
+    channel = await connection.channel()
+    exchange = aio_pika.Exchange(channel, RABBITMQ_CONFIG.TASK_EXCHANGE, type=aio_pika.ExchangeType.DIRECT)
+    await exchange.declare()
+    queue = await channel.declare_queue(RABBITMQ_CONFIG.TASK_QUEUE)
+    await queue.bind(exchange, f"to{queue}")
+    
+    task_manager = TaskManager(exchange)
 
-    consumer_task = loop.create_task(task_consume(connection))
+    consumer_task = loop.create_task(task_consume(queue, task_manager))
+    status_task = loop.create_task(task_manager_status(task_manager))
 
     try:
-        await asyncio.gather(consumer_task)
+        await asyncio.gather(consumer_task, status_task)
     except KeyboardInterrupt:
         pass
     finally:
