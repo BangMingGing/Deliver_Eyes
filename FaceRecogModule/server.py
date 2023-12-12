@@ -32,6 +32,12 @@ class Server_Inferer():
 
 
     async def get_face_recog_result(self, drone_name, receiver):
+        result = None
+        if drone_name not in self.preds_list:
+            result = False
+            database.update_face_recog_result_to_mission_file(drone_name, result, None)
+            return result
+            
         ssim_loss = pytorch_ssim.SSIM(window_size = 11)
         r_mse = []
             
@@ -47,7 +53,7 @@ class Server_Inferer():
             r_mse.append(se)
 
         mse = np.mean(r_mse, axis = 0)
-        result = None
+        
         print(f"******** {receiver}'s mse: {mse} ************")
         if mse > 0.5:
             result = True
