@@ -146,13 +146,4 @@ def generate_drone_path(start_node, destination_node,input_payload):
     else:
         print("경로를 찾을 수 없습니다.")
 
-
-
-
-# # Input data(front)
 start_node = "bc1"
-# destination_node = "5"
-# input_payload = 1.5
-
-# data = drone_path_select(input_payload, destination_node)
-# print(data[0], data[1])

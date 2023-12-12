@@ -197,3 +197,21 @@ async def face_recog_result_event_generator(drone_name):
         face_recog_result = database.getFaceRecogResultByDroneName(drone_name)
         yield f"data: {json.dumps({'face_recog_result': face_recog_result})}\n\n"
         await asyncio.sleep(1)
+
+
+async def get_all_gps_event_generator():
+    while True:
+        drone_data = database.getdata4gps()
+        data = {}
+
+        for entry in drone_data:
+            drone_name = entry['drone_name']
+            mission = entry['mission']
+            
+            # 드론 상태에서 드론 좌표 가져오기
+            gps_data = database.getDroneStatusByDroneName(drone_name)
+            data[drone_name] = {'gps_data': gps_data, 'mission': mission}
+        # JSON 형태로 변환하여 SSE로 보냅니다.
+        yield f"data: {json.dumps(data)}\n\n"
+        # 1초 간격으로 반복합니다.
+        await asyncio.sleep(1)

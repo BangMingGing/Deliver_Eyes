@@ -4,6 +4,12 @@ body {
 
 }
 
+#selectNodeButton,
+#completeNodeButton,
+#set_neighbor_node,
+#CompleteButton,
+#NodeDeleteButton { display: none; /* 처음에는 숨겨진 상태*/ }
+
 #map {
     position: absolute;
     top: 0;

@@ -1,12 +1,14 @@
-import { getBasecamp, getNodes, insertnode, addNewneighbor, delete_node, drawGraph } from "./request.js";
-import { setDestinationMode, getSelectedLocation, getDistance, setDefaultMode, select_neighbor_node, getMaxBuildingHeight, getDeletedNodeNames, setDeletedNodeNames } from "./utils.js";
-import { drawMap, drawBCMarker, drawMarkers, drawDestinationMarker, drawRoute, drawmakenode } from "./draw.js";
+import { getBasecamp, getNodes, insertnode, addNewneighbor, delete_node, drawGraph,InitUI, updateUI } from "./request.js";
+import { setDestinationMode, getSelectedLocation, getDistance, setDefaultMode, select_neighbor_node, getMaxBuildingHeight, getDeletedNodeNames, setDeletedNodeNames, setStorageDroneNames } from "./utils.js";
+import { toggleNodeEditButtons, toCheckDeliveryButton, drawMap, drawBCMarker, drawMarkers, drawDestinationMarker, drawmakenode, drawRoute, drawRoutes } from "./draw.js";
 
 async function main() {
     let basecamps;
     let nodes;
     let map;
 
+    let isNodeEditEnabled = false; // 초기 상태: 노드 편집이 비활성화된 상태
+    let ischeckdeliverEnabled = false;
     // 목적지 선택 모드인지 확인하는 변수
     let isSelectingDestination = false;
 
@@ -25,13 +27,32 @@ async function main() {
     markers = drawMarkers(map, nodes, markers);
 
 
+    const EditNodeButton = document.getElementById('EditNodeButton')
+    const CheckDeliveryButton = document.getElementById('CheckDeliveryButton');
 
     const selectNodeButton = document.getElementById('selectNodeButton');
     const completeNodeButton = document.getElementById('completeNodeButton');
     const set_neighbor_node = document.getElementById('set_neighbor_node');
     const CompleteButton = document.getElementById('CompleteButton');
     const NodeDeleteButton = document.getElementById('NodeDeleteButton');
-    
+
+
+
+
+    EditNodeButton.addEventListener('click', async function() {
+        isNodeEditEnabled = await toggleNodeEditButtons(isNodeEditEnabled, EditNodeButton)
+    });
+
+    CheckDeliveryButton.addEventListener('click', async function() {
+        ischeckdeliverEnabled = await toCheckDeliveryButton(map, ischeckdeliverEnabled, CheckDeliveryButton)
+        const deliverdronesinfo = await InitUI()
+        const drone_names = deliverdronesinfo.map(droneInfo => droneInfo.drone_name);
+        setStorageDroneNames(drone_names)
+        drawRoutes(map, deliverdronesinfo);
+        updateUI(map)
+    });
+
+
     selectNodeButton.addEventListener('click', async function() {
 
         isSelectingDestination = await setDestinationMode(map, isSelectingDestination);
@@ -44,7 +65,6 @@ async function main() {
         }
         isSelectingDestination = await setDefaultMode(map, isSelectingDestination);
     });
-
 
     completeNodeButton.addEventListener('click', async function() {
         drawmakenode(map, selectedLocation,destinationMarker)

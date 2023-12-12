@@ -1,22 +1,22 @@
 from fastapi import APIRouter, Request
 from fastapi.templating import Jinja2Templates
-from fastapi.responses import JSONResponse, RedirectResponse
+from fastapi.responses import JSONResponse, RedirectResponse, StreamingResponse
 
 from backend import database, utils
 
 router = APIRouter(
-    prefix='/node',
-    tags=['node']
+    prefix='/admin',
+    tags=['admin']
 )
 
 templates = Jinja2Templates(directory='frontend')
 
 @router.get('/')
-async def node_page(request: Request):
+async def admin_page(request: Request):
     user = utils.getUserFromCookies(request.cookies)
     if not user:
         return RedirectResponse(url="/login/", status_code=302)
-    return templates.TemplateResponse('/node.html', {'request': request})
+    return templates.TemplateResponse('/admin.html', {'request': request})
 
 
 @router.get('/getBasecamp')
@@ -94,3 +94,28 @@ async def drawGraph(request: Request):
     except:
         errors = 'Error occured while delete node'
         return JSONResponse(content={'errors': errors}, status_code=400)
+
+@router.get("/InitUI")
+async def updateUI(request: Request):
+    user = utils.getUserFromCookies(request.cookies)
+    if not user:
+        return RedirectResponse(url="/login/", status_code=302)
+    try:
+        dronedata = database.getdata4gps()
+        return JSONResponse(content={'dronedata': dronedata}, status_code=200)
+    except:
+        errors = 'Error occured while get drone data in init UI'
+        return JSONResponse(content={'errors': errors}, status_code=400)
+
+
+@router.get("/updateUI")
+async def updateUI(request: Request):
+    user = utils.getUserFromCookies(request.cookies)
+    if not user:
+        return RedirectResponse(url="/login/", status_code=302)
+    
+    return StreamingResponse(                                                                                                                                                        
+        utils.get_all_gps_event_generator(),
+        media_type="text/event-stream",
+        headers={"Cache-Control": "no-cache", "Connection": "keep-alive"},
+    )

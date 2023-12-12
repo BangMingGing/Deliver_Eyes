@@ -9,8 +9,8 @@ async function goToMapPage() {
 }
 
 // 노드 창으로 이동하는 함수
-async function goToNodePage() {
-    window.location.href = '/node/';
+async function goToadminPage() {
+    window.location.href = '/admin/';
 }
 
 // 얼굴 등록 창으로 이동하는 함수
