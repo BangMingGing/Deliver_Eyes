@@ -146,23 +146,4 @@ def generate_drone_path(start_node, destination_node,input_payload):
     else:
         print("경로를 찾을 수 없습니다.")
 
-
-def generateMissionFile(use_drone, path, user):
-
-    # 테스트 미션 파일
-    missionFile = {
-        'user': user,
-        'mission': path, # [위도, 경도, 고도]
-        'drone_name': use_drone, 
-        'receiver_info': 'test_receiver_info'
-    }
-
-    # user의 과거 미션 파일 삭제
-    database.rmPastMissionFile(user)
-
-    # 미션 파일 DB에 저장
-    database.saveMissionFile(missionFile)
-
-    return
-
 start_node = "bc1"
