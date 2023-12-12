@@ -1,3 +1,14 @@
+// 엔터키 이벤트 리스너 추가
+// DomContentLoaded는 HTML 컨텐츠가 모두 로드된 후 스크립트가 실행되도록 보장
+document.addEventListener('DOMContentLoaded', function () {
+    const form = document.getElementById('login-form');
+        form.addEventListener('keydown', function (event) {
+            if (event.key === 'Enter') {
+                login();
+            }
+        });
+});
+
 // 로그인
 async function login() {
     // 입력한 email, password 받아오기
@@ -45,3 +56,4 @@ function setAccessTokenCookie(token) {
 async function goToSignupPage() {
     window.location.href = '/signup/';
 }
+

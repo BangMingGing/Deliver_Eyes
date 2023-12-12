@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Deliver Eyes - Face Data Uploader</title>
+</head>
+<body>
+
+    <h1>Video Upload</h1>
+
+    <form id="uploadForm" enctype="multipart/form-data">
+        <input type="file" name="videoFile" accept="video/*">
+        <button type="button" onclick="uploadVideo()">Upload</button>
+    </form>
+
+    <script>
+        function uploadVideo() {
+            const form = document.getElementById('uploadForm');
+            const formData = new FormData(form);
+
+            fetch('/face/generateFaceData', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('Response from server:', data);
+                alert('Video uploaded successfully!');
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error uploading video. Please try again.');
+            });
+        }
+    </script>
+
+</body>
+</html>

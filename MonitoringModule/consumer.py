@@ -18,21 +18,18 @@ async def log_consume(connection):
     queue = await channel.declare_queue(RABBITMQ_CONFIG.LOG_QUEUE)
     await queue.bind(exchange, f"to{queue}")
 
-    semaphore = asyncio.Semaphore(value=1)
-
-    async def consume_with_semaphore():
-        async with semaphore:
-            async for message in queue:
-                async with message.process():
-                    message_data = pickle.loads(message.body, encoding='bytes')
-                    database.insert_log(message_data)
-                    # print(f"Received message: {message_data}")
+    async def consume():
+        async for message in queue:
+            async with message.process():
+                message_data = pickle.loads(message.body, encoding='bytes')
+                database.insert_log(message_data)
+                print(f"Send Drone name : {message_data['drone_name']}")
 
 
     print(" -- [Log Consumer] started")
 
     while True:
-        await consume_with_semaphore()
+        await consume()
 
 async def rabbitmq_connect():
     connection = await aio_pika.connect_robust(

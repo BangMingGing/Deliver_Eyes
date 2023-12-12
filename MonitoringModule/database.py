@@ -21,9 +21,9 @@ def insert_log(log):
     # if log_count over 5, delete oldest log
     drone_name = log['drone_name']
     count = db['DroneStatus'].count_documents({'drone_name': drone_name})
-    if count >= 5:
-        oldest_log = db['DroneStatus'].find({'drone_name': drone_name}).sort('create_at', 1).limit(1)
-        # print('remove_create_at : ', oldest_log[0]['create_at'])
-        db['DroneStatus'].delete_one(oldest_log[0])
+    if count > 5:
+        oldest_logs = db['DroneStatus'].find({'drone_name': drone_name}).sort('create_at', 1).limit(count - 5)
+        for oldest_log in oldest_logs:
+            db['DroneStatus'].delete_one({'_id': oldest_log['_id']})
         
     return True

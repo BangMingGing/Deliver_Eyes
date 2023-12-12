@@ -3,6 +3,7 @@ import asyncio
 import pickle
 
 from task_manager import TaskManager
+from FaceRecogModule.server import Server_Inferer
 from configuration import RABBITMQ_CONFIG
 
 async def task_consume(connection):
@@ -13,22 +14,7 @@ async def task_consume(connection):
     await queue.bind(exchange, f"to{queue}")
     
     task_manager = TaskManager(exchange)
-
-    async def publish_message(message, drone_name):
-        await exchange.publish(
-            aio_pika.Message(
-                body=pickle.dumps(message), 
-                routing_key=f"to{drone_name}"
-            )
-        )
-
-    async def publish_messages(self, messages, drone_name):
-        for message in messages:
-            await self.exchange.publish(
-                aio_pika.Message(body=pickle.dumps(message)), 
-                routing_key=f"to{drone_name}"
-            )
-        return
+    server_inferer = Server_Inferer()
 
     async def consume():
         async for message in queue:
@@ -40,25 +26,53 @@ async def task_consume(connection):
                 contents = message['contents']
 
                 if header == 'mission_valid':
+                    print('mission_valid called')
                     current_mission = contents['current_mission']
                     await task_manager.mission_valid(drone_name, current_mission)
 
                 elif header == 'resume_valid':
+                    print('resume_valid called')
                     current_mission = contents['current_mission']
                     await task_manager.resume_valid(drone_name, current_mission)
                 
                 elif header == 'mission_start':
+                    print('mission_start called')
                     direction = contents['direction']
                     await task_manager.mission_register(drone_name, direction)
                     await task_manager.mission_start(drone_name, direction)
 
                 elif header == 'mission_finished':
+                    print('mission_finished called')
                     direction = contents['direction']
                     await task_manager.mission_finished(drone_name, direction)
 
+                elif header == 'face_recog_start':
+                    print('face recog start called')
+                    await task_manager.face_recog_start(drone_name)
+
+                elif header == 'face_recog':
+                    print('face recog called')
+                    tensor = contents['tensor']
+                    server_inferer.post_inference(drone_name, tensor)
+
+                elif header == 'face_recog_finish':
+                    print('face recog finish called')
+                    receiver = contents['receiver']
+                    face_recog_result = await server_inferer.get_face_recog_result(drone_name, receiver)
+                    if face_recog_result:
+                        await task_manager.certification_success(drone_name)
+                    
+                elif header == 'password_certify_success':
+                    print('password_certify_success called')
+                    await task_manager.certification_success(drone_name)
                 
+                elif header == 'password_certify_failed':
+                    print('password_certify_failed called')
+                    await task_manager.certification_failed(drone_name)
+
+
                 print('message complete')
-                print('message : ', message)
+                
 
     print(" -- [Task Consumer] started")
 

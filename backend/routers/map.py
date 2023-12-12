@@ -4,7 +4,7 @@ from fastapi import APIRouter, Request
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import JSONResponse, RedirectResponse, StreamingResponse
 
-from backend import database, utils, rabbitmq
+from backend import database, utils, rabbitmq, hashing
 from MFGModule import MFG
 
 from configuration import RABBITMQ_CONFIG
@@ -19,8 +19,6 @@ templates = Jinja2Templates(directory='frontend')
 @router.on_event('startup')
 async def startup_event():
     global task_publisher
-    global loop
-    loop = asyncio.get_event_loop()
     task_publisher = rabbitmq.Publisher(RABBITMQ_CONFIG.TASK_EXCHANGE)
     await task_publisher.initialize()
 
@@ -28,6 +26,7 @@ async def startup_event():
 async def shutdown_event():
     global task_publisher
     await task_publisher.close()
+
 
 @router.get('/')
 async def map_page(request: Request):
@@ -58,43 +57,6 @@ async def getNodes():
     except:
         errors = 'Error occured while get nodes location from DB'
         return JSONResponse(content={'errors': errors}, status_code=400)
-        
-
-@router.post('/select_use_drone')
-async def select_use_drone(request: Request):
-    user = utils.getUserFromCookies(request.cookies)
-    if not user:
-        return RedirectResponse(url="/login/", status_code=302)
-
-    requestJson = await request.json()
-    payload = requestJson.get('payload')
-    destination = requestJson.get('destination')
-    goal_node = database.getNodeName(destination)
-    # 드론 선정
-    try:
-        drone_path_data = MFG.drone_path_select(payload, goal_node)
-        return JSONResponse(content={'drone_path_data': drone_path_data}, status_code=200)
-    except:
-        errors = 'Error occured select use_drone'
-        return JSONResponse(content={'errors': errors}, status_code=400)
-
-@router.post('/path4draw')
-async def path4draw(request: Request):
-    user = utils.getUserFromCookies(request.cookies)
-    if not user:
-        return RedirectResponse(url="/login/", status_code=302)
-
-    requestJson = await request.json()
-    path = requestJson.get('path')
-    try:
-        path_coor = utils.getpath_coor(path)
-        return JSONResponse(content={'path_coor': path_coor}, status_code=200)
-    except:
-        errors = 'path4draw failed'
-        return JSONResponse(content={'errors': errors}, status_code=400)
-
-
-
 
 
 @router.post('/generateMissionFile')
@@ -104,18 +66,19 @@ async def generateMissionFile(request: Request):
         return RedirectResponse(url="/login/", status_code=302)
 
     requestJson = await request.json()
+    payload = requestJson.get('payload')
+    destination = requestJson.get('destination')
+    destination_node = database.getNodeName(destination)
 
-    use_drone = requestJson.get('use_drone')
-    path = requestJson.get('path')
-    
-    # 미션 파일 생성
-    MFG.generateMissionFile(use_drone, path, user)
-
-    # 경로 가져오기
     try:
-        return JSONResponse(content={}, status_code=200)
+        drone_name, mission = await MFG.drone_path_select(payload, destination_node)
+        print(drone_name, mission)
+        mission_file = await MFG.saveMissionFile(user, drone_name, mission)
+        drone_name = mission_file['drone_name']
+        route = utils.getRoute(mission_file['mission'])
+        return JSONResponse(content={'drone_name': drone_name, 'route': route}, status_code=200)
     except:
-        errors = 'Error occured while get route from DB'
+        errors = 'Generate Mission File Failed'
         return JSONResponse(content={'errors': errors}, status_code=400)
 
 
@@ -132,10 +95,7 @@ async def deliverStart(request: Request):
         return JSONResponse(content={'errors': errors}, status_code=400)
 
     message = {"header": "mission_start", "drone_name": drone, "contents": {'direction': 'forward'}}
-    global task_publisher
-    global loop
-    task = loop.create_task(task_publisher.publish(message, RABBITMQ_CONFIG.TASK_QUEUE))
-    await asyncio.gather(task)
+    await task_publisher.publish(message, RABBITMQ_CONFIG.TASK_QUEUE)
 
     response = "Deliver Start Success"
     return JSONResponse(content={'response': response}, status_code=200)
@@ -155,7 +115,88 @@ async def gps_streaming(request: Request):
         headers={"Cache-Control": "no-cache", "Connection": "keep-alive"},
     )
 
+
+@router.post("/faceRecogStart")
+async def faceRecogStart(request: Request):
+    user = utils.getUserFromCookies(request.cookies)
+    if not user:
+        return RedirectResponse(url="/login/", status_code=302)
+
+    drone = database.getDroneByUser(user)
+
+    if not drone:
+        errors = 'Error occured while get drone from DB'
+        return JSONResponse(content={'errors': errors}, status_code=400)
+
+    message = {"header": "face_recog_start", "drone_name": drone, "contents": {}}
+    await task_publisher.publish(message, RABBITMQ_CONFIG.TASK_QUEUE)
+
+    response = "Face Recog Start Success"
     
+    return JSONResponse(content={'response': response}, status_code=200)
+
+
+@router.get("/face_recog_result_streaming")
+async def face_recog_result_streaming(request: Request):
+    user = utils.getUserFromCookies(request.cookies)
+    if not user:
+        return RedirectResponse(url="/login/", status_code=302)
+
+    drone_name = database.getDroneByUser(user)
+
+    return StreamingResponse(
+        utils.face_recog_result_event_generator(drone_name),
+        media_type="text/event-stream",
+        headers={"Cache-Control": "no-cache", "Connection": "keep-alive"},
+    )
+
+
+@router.post("/passwordCertify")
+async def passwordCertify(request: Request):
+    user = utils.getUserFromCookies(request.cookies)
+    if not user:
+        return RedirectResponse(url="/login/", status_code=302)
+    
+    requestJson = await request.json()
+    password = requestJson.get('password')
+
+    # 유저 정보 가져오기
+    user_info = database.get_user(user)
+
+    # 비밀번호 일치여부 확인
+    result = hashing.Hash.verify(user_info["password"], password)
+
+    drone = database.getDroneByUser(user)
+    # 일치한다면
+    if (result):
+        message = {"header": "password_certify_success", "drone_name": drone, "contents": {}}
+        await task_publisher.publish(message, RABBITMQ_CONFIG.TASK_QUEUE)
+
+        response = "Password certify Success"
+        return JSONResponse(content={'response': response}, status_code=200)
+    
+    # 일치하지 않는다면
+    else:
+        message = {"header": "password_certify_failed", "drone_name": drone, "contents": {}}
+        await task_publisher.publish(message, RABBITMQ_CONFIG.TASK_QUEUE)
+        print('password_certify_failed message send')
+        
+        errors = 'Password certify failed'
+        return JSONResponse(content={'errors': errors}, status_code=400)
+
+        
+
+    
+
+    
+    message = {"header": "face_recog_start", "drone_name": drone, "contents": {}}
+    await task_publisher.publish(message, RABBITMQ_CONFIG.TASK_QUEUE)
+
+    response = "Face Recog Start Success"
+    
+    return JSONResponse(content={'response': response}, status_code=200)
+
+
 @router.post("/receiveComplete")
 async def receiveComplete(request: Request):
     user = utils.getUserFromCookies(request.cookies)
@@ -169,10 +210,8 @@ async def receiveComplete(request: Request):
         return JSONResponse(content={'errors': errors}, status_code=400)
 
     message = {"header": "mission_start", "drone_name": drone, "contents": {'direction': 'reverse'}}
-    global task_publisher
-    global loop
-    task = loop.create_task(task_publisher.publish(message, RABBITMQ_CONFIG.TASK_QUEUE))
-    await asyncio.gather(task)
+    await task_publisher.publish(message, RABBITMQ_CONFIG.TASK_QUEUE)
+
     response = "Receive Complete Success"
     
     return JSONResponse(content={'response': response}, status_code=200)

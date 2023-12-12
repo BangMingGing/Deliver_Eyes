@@ -8,6 +8,8 @@ roll_deg = 15
 drag_coefficient = 1.49
 velocity = 1.5
 
+
+
 #드론 배터리 소모량 계산(mAh)
 def calculate_battery_consumption(energy_consumption, drone_name, voltage=None):
     drone_data = database.get_drone_spec(drone_name)

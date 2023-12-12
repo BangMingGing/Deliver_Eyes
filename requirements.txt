@@ -3,6 +3,7 @@ uvicorn
 jinja2
 passlib
 pymongo==3.11
+dnspython
 python-multipart
 python-jose
 jose
@@ -10,3 +11,14 @@ pika
 turf
 aio_pika
 asyncio
+
+opencv-python
+numpy
+
+# Developer Settings
+# torch==1.12.0
+# torchvision==0.13.0
+# torchaudio==0.12.0
+# cudatoolkit==11.3
+## torch install command (below)
+# conda install pytorch==1.12.0 torchvision==0.13.0 torchaudio==0.12.0 cudatoolkit=11.3 -c pytorch

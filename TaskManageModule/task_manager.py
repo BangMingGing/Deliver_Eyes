@@ -14,6 +14,8 @@ class TaskManager():
 
         self.exchange = exchange
 
+        self.hover_alt = 3
+
 
     async def mission_valid(self, drone_name, current_mission):
         mission = self.mission_lists[drone_name]
@@ -59,21 +61,17 @@ class TaskManager():
 
 
     async def mission_register(self, drone_name, direction):
-        mission_file = {}
-        # 캐시에 미션파일이 있다면 캐시에서 가져오기
-        if drone_name in self.mission_file_cache:
-            mission_file = self.mission_file_cache[drone_name]
-        # 캐시에 미션파일이 없다면 DB에서 미션파일 가져온 후, 캐시에 저장
-        elif drone_name not in self.mission_file_cache:
-            mission_file = database.getMissionFileByDrone(drone_name)
-            self.mission_file_cache[drone_name] = mission_file
+        mission_file = await self.get_mission_file(drone_name)
 
         # 정방향 미션을 미션리스트에 추가
         if direction == 'forward':
-            self.mission_lists[drone_name] = mission_file['mission']
+            # mission의 값만 복제하여 새로운 mission 생성
+            mission = mission_file['mission'][:]
+            destination = mission[-1]
+            mission.append([destination[0], destination[1], self.hover_alt])
+            self.mission_lists[drone_name] = mission
         # 역방향(복귀) 미션을 미션리스트에 추가
         elif direction == 'reverse':
-            
             self.mission_lists[drone_name] = mission_file['mission'][::-1]
 
         return
@@ -87,8 +85,14 @@ class TaskManager():
             flag = await self.try_occypy_node(first_node)
             # 첫 노드를 선점한 경우 미션 시작
             if flag == True:
-                messages = await utils.get_mission_start_messages(mission, direction)
-                await self.publish_messages(messages, drone_name)
+                if direction == 'forward':
+                    mission_file = self.mission_file_cache[drone_name]
+                    receiver = mission_file['user']
+                    messages = await utils.get_mission_start_messages(mission, direction, receiver)
+                    await self.publish_messages(messages, drone_name)
+                if direction == 'reverse':
+                    messages = await utils.get_mission_start_messages(mission, direction, None)
+                    await self.publish_messages(messages, drone_name)
                 return
             elif flag == False:
                 await asyncio.sleep(1)
@@ -96,21 +100,61 @@ class TaskManager():
 
     async def mission_finished(self, drone_name, direction):
         mission = self.mission_lists[drone_name]
-        # 정방향 미션의 경우 고도 하강 후 얼굴인식 명령 전달
+        # 정방향 미션의 경우 대기
         if direction == 'forward':
-            message = await utils.get_forward_mission_finished_message()
-            await self.publish_message(message, drone_name)
-            await self.delete_occupied_node(mission[len(mission)-1])
-            del self.mission_lists[drone_name]
+            return
         # 역방향(복귀) 미션의 경우 랜딩 명령 전달
         elif direction == 'reverse':
-            message = await utils.get_reverse_mission_finished_message()
+            message = await utils.get_land_message()
             await self.publish_message(message, drone_name)
-            await self.delete_occupied_node(mission[len(mission)-1])
+            await self.delete_occupied_node(mission[-1])
             del self.mission_lists[drone_name]
             del self.mission_file_cache[drone_name]
         return
-        
+    
+    async def face_recog_start(self, drone_name):
+        message = await utils.get_face_recog_start_message()
+        await self.publish_message(message, drone_name)
+        return
+
+    async def certification_success(self, drone_name):
+        mission = self.mission_lists[drone_name]
+        message = await utils.get_land_message()
+        await self.publish_message(message, drone_name)
+        await self.delete_occupied_node(mission[-1])
+        del self.mission_lists[drone_name]
+        return
+
+    async def certification_failed(self, drone_name):
+        # 역방향으로 설정
+        direction = 'reverse'
+        # 이전 미션 저장
+        mission_past = self.mission_lists[drone_name]
+        print(1)
+        # 미션리스트에서 미션 삭제
+        del self.mission_lists[drone_name]
+        print(2)
+        # 역방향 미션 등록
+        await self.mission_register(drone_name, direction)
+        print(3)
+        # 이륙 없이 역방향 미션 시작
+        await self.mission_start(drone_name, direction)
+        print(4)
+        # 미션이 시작되었다면 호버링하고 있던 노드를 선점된 노드에서 삭제
+        await self.delete_occupied_node(mission_past[-1])
+        print(5)
+        return
+
+    async def get_mission_file(self, drone_name):
+        # 캐시에 미션파일이 있다면 캐시에서 가져오기
+        if drone_name in self.mission_file_cache:
+            return self.mission_file_cache[drone_name]
+        # 캐시에 미션파일이 없다면 DB에서 미션파일 가져와 캐시에 저장 후 미션파일 반환
+        elif drone_name not in self.mission_file_cache:
+            mission_file = database.getMissionFileByDrone(drone_name)
+            self.mission_file_cache[drone_name] = mission_file
+            return mission_file
+
 
     async def try_occypy_node(self, node):
         flag = True

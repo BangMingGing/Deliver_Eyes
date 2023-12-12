@@ -185,8 +185,17 @@ def getRoute(mission):
 
 async def gps_event_generator(drone_name):
     while True:
-        gps_data = database.getDroneStatusByDroneName(drone_name)
-        yield f"data: {json.dumps(gps_data)}\n\n"
+        drone_status = database.getDroneStatusByDroneName(drone_name)
+        gps_info = drone_status['GPS_info']
+        gps_data = [gps_info['lon'], gps_info['lat']]
+        face_recog_start_flag = (drone_status['mission_status'] == "Mission Finished")
+        yield f"data: {json.dumps({'gps_data': gps_data, 'face_recog_start_flag': face_recog_start_flag})}\n\n"
+        await asyncio.sleep(1)
+
+async def face_recog_result_event_generator(drone_name):
+    while True:
+        face_recog_result = database.getFaceRecogResultByDroneName(drone_name)
+        yield f"data: {json.dumps({'face_recog_result': face_recog_result})}\n\n"
         await asyncio.sleep(1)
 
 

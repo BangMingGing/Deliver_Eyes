@@ -36,9 +36,9 @@ export async function getNodes() {
     }
 }
 
-// 드론 선정
-export async function select_use_drone(payload, destination) {
-    const response = await fetch('/map/select_use_drone', {
+// 미션파일 생성 요청
+export async function generateMissionFileRequest(payload, destination) {
+    const response = await fetch('/map/generateMissionFile', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -48,69 +48,22 @@ export async function select_use_drone(payload, destination) {
             destination
         }),
     });
+
     const responseData = await response.json();
+
     if (response.ok) {
-        // select_use_drone 성공 처리
-        const drone_path_data = responseData.drone_path_data;
-        console.log('select drone and path successful');
+        // generateMissionFileRequest 성공 처리
+        console.log('generateMissionFileRequest successful');
         return new Promise((resolve) => {
-            resolve(drone_path_data);
+            resolve(responseData);
         })
     } else {
         // 오류 처리
-        const errors = responseData.errors;
-        console.error('select use_drone failed', errors);
+        console.error('generateMissionFileRequest failed');
     }
 }
 
-export async function path4draw(path) {
-    const response = await fetch('/map/path4draw', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-            path
-        }),
-    });
-
-    const responseData = await response.json();
-    if (response.ok) {
-        // path4draw 성공 처리
-        const path_coor = responseData.path_coor;
-        console.log('path4draw successful');
-        return new Promise((resolve) => {
-            resolve(path_coor);
-        })
-    } else {
-        // 오류 처리
-        const errors = responseData.errors;
-        console.error('path4draw failed', errors);
-    }
-}
-
-
-// 경로 생성 요청
-export async function generateMissionFile(use_drone, path) {
-    const response = await fetch('/map/generateMissionFile', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-            use_drone,
-            path
-        }),
-    });
-    if (response.ok) {
-        // generateMissionFile 성공 처리
-        console.log('generateMissionFile successful');
-    } else {
-        // 오류 처리
-        console.error('generateMissionFile failed');
-    }
-}
-
+// 배송 시작 요청
 export async function deliverStartRequest() {
     const response = await fetch('/map/deliverStart', {
         method: 'POST',
@@ -130,16 +83,22 @@ export async function deliverStartRequest() {
     }
 }
 
-export function startGPSMonitoring(map) {
+// GPS 모니터링 시작
+export function startGPSMonitoring(map, setFlag) {
     // 임의의 gps-point 소스 생성
     initGPS(map)
     
     const eventSource = new EventSource("/map/gps_streaming");
 
     eventSource.onmessage = function (event) {
-        const gpsData = JSON.parse(event.data);
+        const eventData = JSON.parse(event.data);
         // gps-point 소스 업데이트
-        updateGPS(map, gpsData);
+        updateGPS(map, eventData.gps_data);
+        // face_recog_start_flag 확인
+        faceRecogFlag = eventData.face_recog_start_flag;
+        if (faceRecogFlag) {
+            setFlag(faceRecogFlag);
+        }
     };
     eventSource.onerror = function (error) {
         console.error("EventSource failed:", error);
@@ -147,6 +106,74 @@ export function startGPSMonitoring(map) {
     };
 }
 
+// 얼굴인식 시작 요청
+export async function faceRecogStartRequest() {
+    const response = await fetch('/map/faceRecogStart', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+        }),
+    });
+
+    if (response.ok) {
+        // faceRecogStart 성공 처리
+        console.log('faceRecogStart successful');
+    } else {
+        // 오류 처리
+        console.error('faceRecogStart failed');
+    }
+}
+
+// 얼굴인식 결과 모니터링 시작
+export function startFaceRecogResultMonitoring(faceRecogResultCallback) {
+    
+    const eventSource = new EventSource("/map/face_recog_result_streaming");
+
+    eventSource.onmessage = function (event) {
+        const eventData = JSON.parse(event.data);
+        // face_recog_result 확인
+        const face_recog_result = eventData.face_recog_result;
+        if (face_recog_result != null) {
+            faceRecogResultCallback(face_recog_result);
+            eventSource.close();
+        }
+    };
+    eventSource.onerror = function (error) {
+        console.error("EventSource failed:", error);
+        eventSource.close();
+    };
+}
+
+// 비밀번호로 인증 요청
+export async function passwordCertifyRequest(password) {
+    const response = await fetch('/map/passwordCertify', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            password
+        }),
+    });
+
+    if (response.ok) {
+        // passwordCertify 성공 처리
+        console.log('passwordCertify successful');
+        return new Promise((resolve) => {
+            resolve(true);
+        })
+    } else {
+        // 오류 처리
+        console.error('passwordCertify failed');
+        return new Promise((resolve) => {
+            resolve(false);
+        })
+    }
+}
+
+// 수령 완료 요청
 export async function receiveCompleteRequest() {
     const response = await fetch('/map/receiveComplete', {
         method: 'POST',
