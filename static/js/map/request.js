@@ -84,7 +84,7 @@ export async function deliverStartRequest() {
 }
 
 // GPS 모니터링 시작
-export function startGPSMonitoring(map, faceRecogStartButton) {
+export function startGPSMonitoring(map, setFlag) {
     // 임의의 gps-point 소스 생성
     initGPS(map)
     
@@ -95,8 +95,9 @@ export function startGPSMonitoring(map, faceRecogStartButton) {
         // gps-point 소스 업데이트
         updateGPS(map, eventData.gps_data);
         // face_recog_start_flag 확인
-        if (eventData.face_recog_start_flag) {
-            faceRecogStartButton.disabled = false;
+        faceRecogFlag = eventData.face_recog_start_flag;
+        if (faceRecogFlag) {
+            setFlag(faceRecogFlag);
         }
     };
     eventSource.onerror = function (error) {
