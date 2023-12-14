@@ -187,7 +187,10 @@ async def gps_event_generator(drone_name):
     while True:
         drone_status = database.getDroneStatusByDroneName(drone_name)
         gps_info = drone_status['GPS_info']
-        gps_data = [gps_info['lon'], gps_info['lat']]
+        try:
+            gps_data = [gps_info['lon'], gps_info['lat']]
+        except:
+            gps_data = [0, 0]
         face_recog_start_flag = (drone_status['mission_status'] == "Mission Finished")
         yield f"data: {json.dumps({'gps_data': gps_data, 'face_recog_start_flag': face_recog_start_flag})}\n\n"
         await asyncio.sleep(1)
@@ -201,7 +204,7 @@ async def face_recog_result_event_generator(drone_name):
 
 async def get_all_gps_event_generator():
     while True:
-        drone_data = database.getdata4gps()
+        drone_data = database.getInitialDataForMonitoring()
         data = {}
 
         for entry in drone_data:
@@ -209,7 +212,12 @@ async def get_all_gps_event_generator():
             mission = entry['mission']
             
             # 드론 상태에서 드론 좌표 가져오기
-            gps_data = database.getDroneStatusByDroneName(drone_name)
+            drone_status = database.getDroneStatusByDroneName(drone_name)
+            gps_info = drone_status['GPS_info']
+            try:
+                gps_data = [gps_info['lon'], gps_info['lat']]
+            except:
+                gps_data = [0, 0]
             data[drone_name] = {'gps_data': gps_data, 'mission': mission}
         # JSON 형태로 변환하여 SSE로 보냅니다.
         yield f"data: {json.dumps(data)}\n\n"
