@@ -3,7 +3,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import RedirectResponse
 from fastapi.middleware.cors import CORSMiddleware
 
-from backend.routers import signup, login, menu, map, admin, face
+from backend.routers import signup, login, menu, map, admin
 
 
 app = FastAPI()
@@ -30,4 +30,4 @@ app.include_router(login.router)
 app.include_router(menu.router)
 app.include_router(map.router)
 app.include_router(admin.router)
-app.include_router(face.router)
+# app.include_router(face.router)

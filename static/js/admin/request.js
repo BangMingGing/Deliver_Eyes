@@ -94,8 +94,9 @@ export async function delete_node(node_name) {
 
 export async function drawGraph() {
     const response = await fetch('/admin/drawGraph');
+    const responseData = await response.json();
     if (response.ok) {
-        // getBaseCampLocation 성공 처리
+        // drawGraph  성공 처리
         const message = responseData.message;
         console.log('drawGraph successful');
         return message;

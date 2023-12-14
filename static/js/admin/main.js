@@ -1,6 +1,6 @@
 import { getBasecamp, getNodes, insertnode, addNewneighbor, delete_node, drawGraph,InitUI, updateUI } from "./request.js";
 import { setDestinationMode, getSelectedLocation, getDistance, setDefaultMode, select_neighbor_node, getMaxBuildingHeight, getDeletedNodeNames, setDeletedNodeNames, setStorageDroneNames } from "./utils.js";
-import { toggleNodeEditButtons, toCheckDeliveryButton, drawMap, drawBCMarker, drawMarkers, drawDestinationMarker, drawmakenode, drawRoute, drawRoutes } from "./draw.js";
+import { toggleNodeEditButtons, toCheckDeliveryButton, drawMap, drawBCMarker, drawMarkers, drawDestinationMarker, drawmakenode, drawRoute4setneighbor, drawRoutes } from "./draw.js";
 
 async function main() {
     let basecamps;
@@ -85,7 +85,7 @@ async function main() {
 
             const route = [selectedLocation, neighbor_node_coor]
 
-            sourceCounter = drawRoute(map, route, sourceCounter)
+            sourceCounter = drawRoute4setneighbor(map, route, sourceCounter)
 
             neighbor_node_list.push([neighbor_node_name, max_height, distance])
         }
@@ -101,13 +101,16 @@ async function main() {
             insertnode(selectedLocationName,selectedLocation,neighbor_node_list)
             addNewneighbor(selectedLocationName, neighbor_node_list)
             setDeletedNodeNames(delete_node_name)
+            drawGraph()
         }
         else{
             selectedLocationName = Number(nodes.length) + 1
+            console.log("selectedLocationName : ", selectedLocationName)
             insertnode(selectedLocationName,selectedLocation,neighbor_node_list)
             addNewneighbor(selectedLocationName, neighbor_node_list)
+            drawGraph()
         }
-        drawGraph()
+
         location.reload()
     });
 
