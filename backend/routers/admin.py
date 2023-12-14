@@ -101,7 +101,7 @@ async def updateUI(request: Request):
     if not user:
         return RedirectResponse(url="/login/", status_code=302)
     try:
-        dronedata = database.getdata4gps()
+        dronedata = database.getInitialDataForMonitoring()
         return JSONResponse(content={'dronedata': dronedata}, status_code=200)
     except:
         errors = 'Error occured while get drone data in init UI'

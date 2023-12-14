@@ -152,6 +152,7 @@ async function main() {
         await receiveCompleteRequest();
         await displayMessage('Drone return to home');
         // 후 처리 과정
+        receiveCompleteButton.disabled = true;
     });
 }
 

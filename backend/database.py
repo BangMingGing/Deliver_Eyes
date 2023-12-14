@@ -59,22 +59,7 @@ def getMissionByUser(user):
     
     return None
 
-def getdronename4gps():
-    projection = {'_id': 0, 'drone_name': 1}
-    data = db['MissionFiles'].find({}, projection)
-    
-    # 커서를 순회하면서 각 문서의 'drone_name'과 'mission' 값을 추출하고 중복을 제거
-    drone_data = [{'drone_name': document['drone_name']} for document in data]
-
-    print("get drone name 4 gps Drone Data: ", drone_data)
-    
-    if drone_data:
-        return drone_data  # 중복 제거를 위해 리스트로 반환
-    
-    return None
-
-
-def getdata4gps():
+def getInitialDataForMonitoring():
     projection = {'_id': 0, 'drone_name': 1, 'mission': 1}
     data = db['MissionFiles'].find({}, projection)
     

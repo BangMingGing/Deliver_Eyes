@@ -95,7 +95,7 @@ export function startGPSMonitoring(map, setFlag) {
         // gps-point 소스 업데이트
         updateGPS(map, eventData.gps_data);
         // face_recog_start_flag 확인
-        faceRecogFlag = eventData.face_recog_start_flag;
+        const faceRecogFlag = eventData.face_recog_start_flag;
         if (faceRecogFlag) {
             setFlag(faceRecogFlag);
         }

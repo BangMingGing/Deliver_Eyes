@@ -107,6 +107,7 @@ class TaskManager():
         elif direction == 'reverse':
             message = await utils.get_land_message()
             await self.publish_message(message, drone_name)
+            await self.checkLandFinish(drone_name)
             await self.delete_occupied_node(mission[-1])
             del self.mission_lists[drone_name]
             del self.mission_file_cache[drone_name]
@@ -121,6 +122,7 @@ class TaskManager():
         mission = self.mission_lists[drone_name]
         message = await utils.get_land_message()
         await self.publish_message(message, drone_name)
+        await self.checkLandFinish(drone_name)
         await self.delete_occupied_node(mission[-1])
         del self.mission_lists[drone_name]
         return
@@ -193,3 +195,14 @@ class TaskManager():
                 routing_key=f"to{drone_name}"
             )
         return
+    
+    async def checkLandFinish(self, drone_name):
+        while True:
+            drone_status = database.getDroneStatusByDrone(drone_name)
+            gps_info = drone_status['GPS_info']
+            gps_alt = gps_info['rel_alt']
+            if gps_alt < 1:
+                return
+            await asyncio.sleep(2)
+        
+            
