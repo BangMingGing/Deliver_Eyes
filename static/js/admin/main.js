@@ -101,15 +101,14 @@ async function main() {
             insertnode(selectedLocationName,selectedLocation,neighbor_node_list)
             addNewneighbor(selectedLocationName, neighbor_node_list)
             setDeletedNodeNames(delete_node_name)
-            drawGraph()
         }
         else{
             selectedLocationName = Number(nodes.length) + 1
             console.log("selectedLocationName : ", selectedLocationName)
             insertnode(selectedLocationName,selectedLocation,neighbor_node_list)
             addNewneighbor(selectedLocationName, neighbor_node_list)
-            drawGraph()
         }
+        await drawGraph()
 
         location.reload()
     });
