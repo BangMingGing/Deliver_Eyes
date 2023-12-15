@@ -158,6 +158,7 @@ def revise_graph(basecamps):
         for node_info in database.findNodes():
             if str(node_info['node_name']) != BC_name:
                 #graph = add_node_to_graph(graph, node_info, visited_nodes)
+                print("node info in revise graph : ", node_info)
                 graph = add_node_to_graph(graph, node_info)
             else:
                 graph[node_info['node_name']] = {'adj_node': []}

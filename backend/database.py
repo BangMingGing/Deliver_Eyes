@@ -158,7 +158,7 @@ def getNodes4node():
     return nodes
 
 def insert_new_node(node_name, node_coor, adj_node):
-    db['Nodes'].insert_one({'node_name' : node_name,
+    db['Nodes'].insert_one({'node_name' : int(node_name),
                             'node_coor' : node_coor,
                             'adj_node' : adj_node
                             })

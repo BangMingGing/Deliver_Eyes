@@ -64,12 +64,11 @@ async def generateMissionFile(request: Request):
     user = utils.getUserFromCookies(request.cookies)
     if not user:
         return RedirectResponse(url="/login/", status_code=302)
-
     requestJson = await request.json()
     payload = requestJson.get('payload')
     destination = requestJson.get('destination')
     destination_node = database.getNodeName(destination)
-
+    print("---------------")
     try:
         drone_name, mission = await MFG.drone_path_select(payload, destination_node)
         print(drone_name, mission)

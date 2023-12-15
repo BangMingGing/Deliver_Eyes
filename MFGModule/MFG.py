@@ -38,6 +38,7 @@ async def drone_path_select(payload, destination_node):
             start_node = info[0]
             graph = info[1]
             shortest_path = dijkstra(graph, start_node, destination_node, payload, drone_name)
+            print("shortest_path : ", shortest_path)
             altitudes = {node: int(graph[node]['adj_node'][0][1]) if 'adj_node' in graph[node] and graph[node]['adj_node'] else 0 for node in graph}
             altitude_list = [altitudes[node] for node in shortest_path]
             altitudes[start_node] = int(database.findBCname(start_node).get('altitude', 0))

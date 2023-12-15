@@ -234,6 +234,47 @@ export function removeRouteAndPoint(map, droneName) {
     }
 }
 
+export function drawRoute4setneighbor(map, route, sourceCounter) {
+    if (!map || !route || route.length === 0) {
+        console.error('Invalid map or route data.');
+        return;
+    }
+
+    // 소스 ID 생성
+    const sourceId = 'route-source-' + sourceCounter++;
+
+    const geojson = {
+        type: 'Feature',
+        geometry: {
+            type: 'LineString',
+            coordinates: route,
+        },
+    };
+
+    // 레이어에 추가할 데이터 소스 생성
+    map.addSource(sourceId, {
+        type: 'geojson',
+        data: geojson,
+    });
+
+    // 위에서 생성한 소스로 레이어 생성
+    map.addLayer({
+        id: sourceId,
+        type: 'line',
+        source: sourceId, // 소스 ID 사용
+        layout: {
+            'line-join': 'round',
+            'line-cap': 'round',
+        },
+        paint: {
+            'line-color': 'blue',
+            'line-width': 3,
+        },
+    });
+    console.log(sourceCounter)
+    return sourceCounter
+}
+
 export function drawRoute(map, droneName, route) {
         console.log("route : ", route)
         const routeLayerId = `route-${droneName}`;
