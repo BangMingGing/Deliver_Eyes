@@ -3,17 +3,18 @@ import cv2 as cv
 import numpy as np
 
 from . import model_total as mymodels
+from configuration import FACE_CONFIG
 
 device = torch.device('cuda')
 model = mymodels.resnet_test(mymodels.AutoCompressor(64, 32))
 model.to(device)
-model.load_state_dict(torch.load("/home/bmk/repos/etri/Deliver_Eyes/FaceRecogModule/pth/Autoencoder_ResNet_0.87078.pth"), strict=False)
+model.load_state_dict(torch.load(f"{FACE_CONFIG.PTH_ROUTE}"), strict=False)
 model.eval()
 torch.set_grad_enabled(False)
 
 async def train(user):
-    train_data_route = f"/home/bmk/repos/etri/Deliver_Eyes/FaceRecogModule/train_datas/{user}"
-    receiver_info_route = f"/home/bmk/repos/etri/Deliver_Eyes/FaceRecogModule/receiver_infos/{user}"
+    train_data_route = f"{FACE_CONFIG.TRAIN_DATAS_ROUTE}/{user}"
+    receiver_info_route = f"{FACE_CONFIG.RECEIVER_INFOS_ROUTE}/{user}"
     
     targets = torch.zeros(1, 2048)
     targets = targets.to(device)

@@ -4,10 +4,11 @@ import pytorch_ssim
 from onnxruntime import InferenceSession
 
 from . import database
+from configuration import FACE_CONFIG
 
 class onnx_server_model:
     def __init__(self, provider):
-        self.model = InferenceSession(f"/home/bmk/repos/etri/Deliver_Eyes/FaceRecogModule/resnet_server.onnx",
+        self.model = InferenceSession(f"{FACE_CONFIG.ONNX_ROUTE}",
                                       providers=[f'{provider}ExecutionProvider'])
 
     def inference(self, out):
@@ -32,16 +33,14 @@ class Server_Inferer():
 
 
     async def get_face_recog_result(self, drone_name, receiver):
-        result = None
         if drone_name not in self.preds_list:
-            result = False
-            database.update_face_recog_result_to_mission_file(drone_name, result, None)
-            return result
+            database.update_face_recog_result_to_mission_file(drone_name, round(0, 2), False)
+            return False
             
         ssim_loss = pytorch_ssim.SSIM(window_size = 11)
         r_mse = []
             
-        target_route = f"/home/bmk/repos/etri/Deliver_Eyes/FaceRecogModule/receiver_infos/{receiver}"
+        target_route = f"{FACE_CONFIG.RECEIVER_INFOS_ROUTE}/{receiver}"
         targets = torch.load(target_route)
         
         for preds in self.preds_list[drone_name]:
@@ -60,6 +59,6 @@ class Server_Inferer():
         else:
             result = False
 
-        database.update_face_recog_result_to_mission_file(drone_name, mse, result)
+        database.update_face_recog_result_to_mission_file(drone_name, float(round(mse, 2)), result)
 
         return result
