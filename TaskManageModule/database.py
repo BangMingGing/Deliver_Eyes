@@ -28,7 +28,8 @@ def getTaskMessage():
     try:
         task_message = db['Task'].find_one()
         db['Task'].delete_one(task_message)
-        print(task_message)
+        # print(task_message)
         return task_message
     except:
-        print("no task_message")
+        pass
+        # print("no task_message")

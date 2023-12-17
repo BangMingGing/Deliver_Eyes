@@ -4,13 +4,18 @@ import pickle
 
 import database
 from task_manager import TaskManager
-from FaceRecogModule.server import Server_Inferer
 from configuration import RABBITMQ_CONFIG
 
-async def task_consume(queue, task_manager, server_inferer):
+async def task_consume(task_queue, task_manager, face_exchange):
+
+    async def send_to_face_module(message):
+        await face_exchange.publish(
+            aio_pika.Message(body=pickle.dumps(message)), 
+            routing_key=f"to{RABBITMQ_CONFIG.FACE_QUEUE}"
+        )
 
     async def consume():
-        async for message in queue:
+        async for message in task_queue:
             async with message.process():
                 message = pickle.loads(message.body, encoding='bytes')
                 
@@ -45,16 +50,18 @@ async def task_consume(queue, task_manager, server_inferer):
 
                 elif header == 'face_recog':
                     print('face recog called')
-                    tensor = contents['tensor']
-                    server_inferer.post_inference(drone_name, tensor)
+                    await send_to_face_module(message)
 
                 elif header == 'face_recog_finish':
                     print('face recog finish called')
-                    receiver = contents['receiver']
-                    face_recog_result = await server_inferer.get_face_recog_result(drone_name, receiver)
+                    await send_to_face_module(message)
+                    
+                elif header == 'face_inference_finish':
+                    print('face inference finish called')
+                    face_recog_result = contents['face_recog_result']
                     if face_recog_result:
                         await task_manager.certification_success(drone_name)
-                    
+
                 elif header == 'password_certify_success':
                     print('password_certify_success called')
                     await task_manager.certification_success(drone_name)
@@ -72,7 +79,13 @@ async def task_consume(queue, task_manager, server_inferer):
     while True:
         await consume()
 
-async def db_consume(task_manager, server_inferer):
+async def db_consume(task_manager, face_exchange):
+    async def send_to_face_module(message):
+        await face_exchange.publish(
+            aio_pika.Message(body=pickle.dumps(message)), 
+            routing_key=f"to{RABBITMQ_CONFIG.FACE_QUEUE}"
+        )
+
     print(" -- [DB Task Consumer] started")
     while True:
         message = database.getTaskMessage()
@@ -108,16 +121,18 @@ async def db_consume(task_manager, server_inferer):
 
             elif header == 'face_recog':
                 print('face recog called')
-                tensor = contents['tensor']
-                server_inferer.post_inference(drone_name, tensor)
+                await send_to_face_module(message)
 
             elif header == 'face_recog_finish':
                 print('face recog finish called')
-                receiver = contents['receiver']
-                face_recog_result = await server_inferer.get_face_recog_result(drone_name, receiver)
+                await send_to_face_module(message)
+                
+            elif header == 'face_inference_finish':
+                print('face inference finish called')
+                face_recog_result = contents['face_recog_result']
                 if face_recog_result:
                     await task_manager.certification_success(drone_name)
-                
+
             elif header == 'password_certify_success':
                 print('password_certify_success called')
                 await task_manager.certification_success(drone_name)
@@ -159,16 +174,18 @@ async def main():
 
     connection = await rabbitmq_connect()
     channel = await connection.channel()
-    exchange = aio_pika.Exchange(channel, RABBITMQ_CONFIG.TASK_EXCHANGE, type=aio_pika.ExchangeType.DIRECT)
-    await exchange.declare()
-    queue = await channel.declare_queue(RABBITMQ_CONFIG.TASK_QUEUE)
-    await queue.bind(exchange, f"to{queue}")
-    
-    task_manager = TaskManager(exchange)
-    server_inferer = Server_Inferer()
+    task_exchange = aio_pika.Exchange(channel, RABBITMQ_CONFIG.TASK_EXCHANGE, type=aio_pika.ExchangeType.DIRECT)
+    await task_exchange.declare()
+    task_queue = await channel.declare_queue(RABBITMQ_CONFIG.TASK_QUEUE)
+    await task_queue.bind(task_exchange, f"to{task_queue}")
 
-    consumer_task = loop.create_task(task_consume(queue, task_manager, server_inferer))
-    db_consume_task = loop.create_task(db_consume(task_manager, server_inferer))
+    face_exchange = aio_pika.Exchange(channel, RABBITMQ_CONFIG.FACE_EXCHANGE, type=aio_pika.ExchangeType.DIRECT)
+    await task_exchange.declare()
+    
+    task_manager = TaskManager(task_exchange)
+
+    consumer_task = loop.create_task(task_consume(task_queue, task_manager, face_exchange))
+    db_consume_task = loop.create_task(db_consume(task_manager, face_exchange))
     status_task = loop.create_task(task_manager_status(task_manager))
 
     try:
