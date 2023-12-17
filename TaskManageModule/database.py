@@ -31,12 +31,12 @@ def getTaskMessage():
         task_message = db['Task'].find_one()
         db['Task'].delete_one(task_message)
         # print(task_message)
-        return pickle.loads(task_message)
+        return pickle.loads(task_message['bytes'])
     except:
         pass
         # print("no task_message")
     
 def send_to_face_module(new_message):
     message = pickle.dumps(new_message)
-    db['Face'].insert_one(message)
+    db['Face'].insert_one({'bytes': message})
     return

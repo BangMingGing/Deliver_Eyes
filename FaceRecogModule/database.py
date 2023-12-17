@@ -30,16 +30,17 @@ def update_face_recog_result_to_mission_file(drone_name, mse, result):
 
 def getFaceMessage():
     try:
-        task_message = db['Face'].find_one()
-        db['Face'].delete_one(task_message)
-        # print(task_message)
-        return pickle.loads(task_message)
+        face_message = db['Face'].find_one()
+        db['Face'].delete_one(face_message)
+        # print(face_message)
+        return pickle.loads(face_message['bytes'])
     except:
         pass
-        # print("no task_message")
+        # print("no face_message")
 
 
 def send_to_task_module(new_messsage):
     message = pickle.dumps(new_messsage)
-    db['Task'].insert_one(message)
+
+    db['Task'].insert_one({'bytes': message})
     return
