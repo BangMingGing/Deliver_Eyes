@@ -25,3 +25,18 @@ def update_face_recog_result_to_mission_file(drone_name, mse, result):
         print(f"No matching document found for drone {drone_name}")
 
     return
+
+def getFaceMessage():
+    try:
+        task_message = db['Face'].find_one()
+        db['Face'].delete_one(task_message)
+        # print(task_message)
+        return task_message
+    except:
+        pass
+        # print("no task_message")
+
+
+def send_to_task_module(new_messsage):
+    db['Task'].insert_one(new_messsage)
+    return
