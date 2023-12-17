@@ -22,7 +22,7 @@ async def face_consume(server_inferer):
                 print('face recog finish called')
                 receiver = contents['receiver']
                 face_recog_result = await server_inferer.get_face_recog_result(drone_name, receiver)
-                new_message = {'header': header, 'drone_name': drone_name, contents: {'face_recog_result': face_recog_result}}
+                new_message = {'header': 'face_inference_finish', 'drone_name': drone_name, 'contents': {'face_recog_result': face_recog_result}}
                 database.send_to_task_module(new_message)
 
             print('message complete')       
