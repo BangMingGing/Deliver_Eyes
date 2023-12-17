@@ -3,7 +3,7 @@ import torch
 import pytorch_ssim
 from onnxruntime import InferenceSession
 
-from . import database
+import database
 from configuration import FACE_CONFIG
 
 class onnx_server_model:

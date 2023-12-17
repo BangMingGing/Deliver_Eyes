@@ -2,7 +2,7 @@ import aio_pika
 import asyncio
 import pickle
 
-from FaceRecogModule.server import Server_Inferer
+from server import Server_Inferer
 from configuration import RABBITMQ_CONFIG
 
 async def face_consume(face_queue, server_inferer, task_exchange):
