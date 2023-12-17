@@ -5,6 +5,8 @@ from fastapi.responses import JSONResponse, RedirectResponse
 from backend import utils
 from FaceRecogModule import face_data_generator
 
+from configuration import FACE_CONFIG
+
 router = APIRouter(
     prefix='/face',
     tags=['face']
@@ -22,7 +24,7 @@ async def generateFaceData(request: Request, videoFile: UploadFile = File(...)):
     if not user:
         return RedirectResponse(url="/login/", status_code=302)
 
-    with open(f"/home/bmk/repos/etri/Deliver_Eyes/FaceRecogModule/train_datas/{user}", "wb") as video:
+    with open(f"{FACE_CONFIG.TRAIN_DATAS_ROUTE}/{user}", "wb") as video:
         video.write(videoFile.file.read())
 
     await face_data_generator.train(user)
