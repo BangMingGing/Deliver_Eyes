@@ -94,7 +94,8 @@ async def deliverStart(request: Request):
         return JSONResponse(content={'errors': errors}, status_code=400)
 
     message = {"header": "mission_start", "drone_name": drone, "contents": {'direction': 'forward'}}
-    await task_publisher.publish(message, RABBITMQ_CONFIG.TASK_QUEUE)
+    database.saveTaskToDB(message)
+    #await task_publisher.publish(message, RABBITMQ_CONFIG.TASK_QUEUE)
 
     response = "Deliver Start Success"
     return JSONResponse(content={'response': response}, status_code=200)
@@ -128,7 +129,8 @@ async def faceRecogStart(request: Request):
         return JSONResponse(content={'errors': errors}, status_code=400)
 
     message = {"header": "face_recog_start", "drone_name": drone, "contents": {}}
-    await task_publisher.publish(message, RABBITMQ_CONFIG.TASK_QUEUE)
+    database.saveTaskToDB(message)
+    # await task_publisher.publish(message, RABBITMQ_CONFIG.TASK_QUEUE)
 
     response = "Face Recog Start Success"
     
@@ -169,7 +171,8 @@ async def passwordCertify(request: Request):
     # 일치한다면
     if (result):
         message = {"header": "password_certify_success", "drone_name": drone, "contents": {}}
-        await task_publisher.publish(message, RABBITMQ_CONFIG.TASK_QUEUE)
+        database.saveTaskToDB(message)
+        # await task_publisher.publish(message, RABBITMQ_CONFIG.TASK_QUEUE)
 
         response = "Password certify Success"
         return JSONResponse(content={'response': response}, status_code=200)
@@ -177,7 +180,8 @@ async def passwordCertify(request: Request):
     # 일치하지 않는다면
     else:
         message = {"header": "password_certify_failed", "drone_name": drone, "contents": {}}
-        await task_publisher.publish(message, RABBITMQ_CONFIG.TASK_QUEUE)
+        database.saveTaskToDB(message)
+        # await task_publisher.publish(message, RABBITMQ_CONFIG.TASK_QUEUE)
         print('password_certify_failed message send')
         
         errors = 'Password certify failed'

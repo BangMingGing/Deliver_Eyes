@@ -206,3 +206,10 @@ def saveGraph(basecamp_name, graph):
 def reviseGraph(basecamp_name, graph):
     db['Graphs'].update_one({"BC_name": basecamp_name},{"$set": {"graph": graph}})
     return True
+
+
+## Task Save to DB
+
+def saveTaskToDB(message):
+    db['Task'].insert_one(message)
+    return True
