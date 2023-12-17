@@ -9,7 +9,7 @@ mongodb_client = MongoClient(client)
 db = mongodb_client[database]
 
 
-def update_face_recog_result_to_mission_file(drone_name, result, mse):
+def update_face_recog_result_to_mission_file(drone_name, mse, result):
     query = {'drone_name': drone_name}
     update = {"$set": {'face_recog_result': result, 'mse': mse}}
 
