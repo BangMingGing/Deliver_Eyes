@@ -14,6 +14,8 @@ asyncio
 
 opencv-python
 numpy
+pytorch_ssim
+onnxruntime
 
 # Developer Settings
 # torch==1.12.0
