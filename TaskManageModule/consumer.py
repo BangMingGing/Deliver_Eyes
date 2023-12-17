@@ -45,11 +45,11 @@ async def task_consume(task_queue, task_manager):
 
                 elif header == 'face_recog':
                     print('face recog called')
-                    await database.send_to_face_module(message)
+                    database.send_to_face_module(message)
 
                 elif header == 'face_recog_finish':
                     print('face recog finish called')
-                    await database.send_to_face_module(message)
+                    database.send_to_face_module(message)
                     
                 elif header == 'face_inference_finish':
                     print('face inference finish called')
@@ -111,11 +111,11 @@ async def db_consume(task_manager):
 
             elif header == 'face_recog':
                 print('face recog called')
-                await database.send_to_face_module(message)
+                database.send_to_face_module(message)
 
             elif header == 'face_recog_finish':
                 print('face recog finish called')
-                await database.send_to_face_module(message)
+                database.send_to_face_module(message)
                 
             elif header == 'face_inference_finish':
                 print('face inference finish called')
