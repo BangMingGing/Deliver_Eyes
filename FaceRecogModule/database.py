@@ -2,6 +2,8 @@ import os
 import sys
 sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
 
+import pickle
+
 from pymongo import MongoClient
 
 from configuration import DB_CONFIG
@@ -31,12 +33,13 @@ def getFaceMessage():
         task_message = db['Face'].find_one()
         db['Face'].delete_one(task_message)
         # print(task_message)
-        return task_message
+        return pickle.loads(task_message)
     except:
         pass
         # print("no task_message")
 
 
 def send_to_task_module(new_messsage):
-    db['Task'].insert_one(new_messsage)
+    message = pickle.dumps(new_messsage)
+    db['Task'].insert_one(message)
     return
