@@ -3,16 +3,11 @@ import asyncio
 import pickle
 
 import database
+
 from task_manager import TaskManager
 from configuration import RABBITMQ_CONFIG
 
-async def task_consume(task_queue, task_manager, face_exchange):
-
-    async def send_to_face_module(message):
-        await face_exchange.publish(
-            aio_pika.Message(body=pickle.dumps(message)), 
-            routing_key=f"to{RABBITMQ_CONFIG.FACE_QUEUE}"
-        )
+async def task_consume(task_queue, task_manager):
 
     async def consume():
         async for message in task_queue:
@@ -50,11 +45,11 @@ async def task_consume(task_queue, task_manager, face_exchange):
 
                 elif header == 'face_recog':
                     print('face recog called')
-                    await send_to_face_module(message)
+                    await database.send_to_face_module(message)
 
                 elif header == 'face_recog_finish':
                     print('face recog finish called')
-                    await send_to_face_module(message)
+                    await database.send_to_face_module(message)
                     
                 elif header == 'face_inference_finish':
                     print('face inference finish called')
@@ -79,12 +74,7 @@ async def task_consume(task_queue, task_manager, face_exchange):
     while True:
         await consume()
 
-async def db_consume(task_manager, face_exchange):
-    async def send_to_face_module(message):
-        await face_exchange.publish(
-            aio_pika.Message(body=pickle.dumps(message)), 
-            routing_key=f"to{RABBITMQ_CONFIG.FACE_QUEUE}"
-        )
+async def db_consume(task_manager):
 
     print(" -- [DB Task Consumer] started")
     while True:
@@ -121,11 +111,11 @@ async def db_consume(task_manager, face_exchange):
 
             elif header == 'face_recog':
                 print('face recog called')
-                await send_to_face_module(message)
+                await database.send_to_face_module(message)
 
             elif header == 'face_recog_finish':
                 print('face recog finish called')
-                await send_to_face_module(message)
+                await database.send_to_face_module(message)
                 
             elif header == 'face_inference_finish':
                 print('face inference finish called')
@@ -178,14 +168,11 @@ async def main():
     await task_exchange.declare()
     task_queue = await channel.declare_queue(RABBITMQ_CONFIG.TASK_QUEUE)
     await task_queue.bind(task_exchange, f"to{task_queue}")
-
-    face_exchange = aio_pika.Exchange(channel, RABBITMQ_CONFIG.FACE_EXCHANGE, type=aio_pika.ExchangeType.DIRECT)
-    await task_exchange.declare()
     
     task_manager = TaskManager(task_exchange)
 
-    consumer_task = loop.create_task(task_consume(task_queue, task_manager, face_exchange))
-    db_consume_task = loop.create_task(db_consume(task_manager, face_exchange))
+    consumer_task = loop.create_task(task_consume(task_queue, task_manager))
+    db_consume_task = loop.create_task(db_consume(task_manager))
     status_task = loop.create_task(task_manager_status(task_manager))
 
     try:

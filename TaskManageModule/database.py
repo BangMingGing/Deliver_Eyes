@@ -33,3 +33,7 @@ def getTaskMessage():
     except:
         pass
         # print("no task_message")
+    
+def send_to_face_module(new_message):
+    db['Face'].insert_one(new_message)
+    return
