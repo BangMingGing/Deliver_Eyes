@@ -75,7 +75,7 @@ export async function drawMap(basecamp) {
         // Choose from Mapbox's core styles, or make your own style with Mapbox Studio
         style: 'mapbox://styles/mapbox/light-v11',
         center: basecamp,
-        zoom: 15.5,
+        zoom: 18,
         pitch: 45,
         bearing: -17.6,
         container: 'map',
