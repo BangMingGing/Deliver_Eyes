@@ -140,7 +140,7 @@ export async function getMaxBuildingHeight(map, selectedLocation, neighbor_node,
             maxBuildingHeight = buildingHeight;
         }
     });
-    maxBuildingHeight = maxBuildingHeight + 10
+    maxBuildingHeight = maxBuildingHeight + 5
     return new Promise((resolve) => {
         resolve(maxBuildingHeight);
     })
