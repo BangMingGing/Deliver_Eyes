@@ -16,16 +16,16 @@ router = APIRouter(
 
 templates = Jinja2Templates(directory='frontend')
 
-@router.on_event('startup')
-async def startup_event():
-    global task_publisher
-    task_publisher = rabbitmq.Publisher(RABBITMQ_CONFIG.TASK_EXCHANGE)
-    await task_publisher.initialize()
+# @router.on_event('startup')
+# async def startup_event():
+#     global task_publisher
+#     task_publisher = rabbitmq.Publisher(RABBITMQ_CONFIG.TASK_EXCHANGE)
+#     await task_publisher.initialize()
 
-@router.on_event("shutdown")
-async def shutdown_event():
-    global task_publisher
-    await task_publisher.close()
+# @router.on_event("shutdown")
+# async def shutdown_event():
+#     global task_publisher
+#     await task_publisher.close()
 
 
 @router.get('/')
@@ -95,6 +95,7 @@ async def deliverStart(request: Request):
 
     message = {"header": "mission_start", "drone_name": drone, "contents": {'direction': 'forward'}}
     database.saveTaskToDB(message)
+    print("db saved task")
     #await task_publisher.publish(message, RABBITMQ_CONFIG.TASK_QUEUE)
 
     response = "Deliver Start Success"
@@ -213,7 +214,9 @@ async def receiveComplete(request: Request):
         return JSONResponse(content={'errors': errors}, status_code=400)
 
     message = {"header": "mission_start", "drone_name": drone, "contents": {'direction': 'reverse'}}
-    await task_publisher.publish(message, RABBITMQ_CONFIG.TASK_QUEUE)
+    database.saveTaskToDB(message)
+    print("send recevie ompelt")
+    # await task_publisher.publish(message, RABBITMQ_CONFIG.TASK_QUEUE)
 
     response = "Receive Complete Success"
     
