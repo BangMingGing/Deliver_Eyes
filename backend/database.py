@@ -1,4 +1,5 @@
-from pymongo import MongoClient
+import pickle
+from pymongo import MongoClient, DESCENDING
 
 from configuration import DB_CONFIG
 
@@ -79,7 +80,7 @@ def getDroneByUser(user):
     return None
 
 def getDroneStatusByDroneName(drone_name):
-    drone_status = db['DroneStatus'].find({'drone_name': drone_name}).sort('create_at', -1).limit(1)[0]
+    drone_status = db['DroneStatus'].find({'drone_name': drone_name}).sort('create_at', DESCENDING).limit(1)[0]
     if drone_status is not None:
         return drone_status
 
@@ -211,5 +212,6 @@ def reviseGraph(basecamp_name, graph):
 ## Task Save to DB
 
 def saveTaskToDB(message):
-    db['Task'].insert_one(message)
+    pickle_message = pickle.dumps(message)
+    db['Task'].insert_one({'bytes': pickle_message})
     return True
