@@ -15,7 +15,7 @@ body {
 /* 버튼 클릭 창에 대한 스타일 */
 #buttonZone {
     position: absolute;
-    top: 150px;
+    top: 120px;
     right: 10px;
     display: flex;
     flex-direction: column;
