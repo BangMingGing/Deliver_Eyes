@@ -60,5 +60,6 @@ class Server_Inferer():
             result = False
 
         database.update_face_recog_result_to_mission_file(drone_name, float(round(mse, 2)), result)
+        del self.preds_list[drone_name]
 
         return result

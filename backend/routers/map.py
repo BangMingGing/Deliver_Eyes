@@ -188,18 +188,6 @@ async def passwordCertify(request: Request):
         errors = 'Password certify failed'
         return JSONResponse(content={'errors': errors}, status_code=400)
 
-        
-
-    
-
-    
-    message = {"header": "face_recog_start", "drone_name": drone, "contents": {}}
-    await task_publisher.publish(message, RABBITMQ_CONFIG.TASK_QUEUE)
-
-    response = "Face Recog Start Success"
-    
-    return JSONResponse(content={'response': response}, status_code=200)
-
 
 @router.post("/receiveComplete")
 async def receiveComplete(request: Request):

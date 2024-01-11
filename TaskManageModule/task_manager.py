@@ -14,14 +14,19 @@ class TaskManager():
 
         self.exchange = exchange
 
-        self.hover_alt = 3
+        self.hover_alt = 2.5
 
 
     async def mission_valid(self, drone_name, current_mission):
-        mission = self.mission_lists[drone_name]
+        try:
+            mission = self.mission_lists[drone_name]
+        except:
+            print('비정상적인 미션 검증 요청입니다.')
+            return
 
         # 미자막 노드인 경우
         if current_mission+1 == len(mission):
+            print('마지막 노드입니다.')
             past_node = mission[current_mission-1]
             await self.delete_occupied_node(past_node)
             return
@@ -30,11 +35,13 @@ class TaskManager():
         flag = await self.try_occypy_node(next_node)
         # 노드가 이미 선점된 경우 -> 검증 실패 -> pause
         if flag == False:
+            print('노드 선점 실패')
             pause_message = await utils.get_mission_pause_message()
             await self.publish_message(pause_message, drone_name)
             return
         # 노드가 선점되지 않은 경우 -> 검증 성공
         elif flag == True:
+            print('노드 선점 성공')
             # 첫번째 노드의 경우 지난 노드가 없기 때문에 삭제 X
             if current_mission == 0:
                 return
@@ -50,14 +57,18 @@ class TaskManager():
         # 선점 못했던 노드
         next_node = mission[current_mission+1]
 
-        # 노드를 선점할때까지 반복
-        while True:
-            # 노드를 선점한 경우
-            if (await self.try_occypy_node(next_node)):
-                resume_message = await utils.get_resume_message()
-                await self.publish_message(resume_message, drone_name)
-                return
-            await asyncio.sleep(1)
+        # 노드를 선점한 경우
+        flag = await self.try_occypy_node(next_node)
+        print(f'미션 재개 검증 결과 : {flag}')
+
+        resume_message = await utils.get_resume_message(flag)
+        await self.publish_message(resume_message, drone_name)
+
+        if flag == True:
+            print('노드 선점 성공')
+            past_node = mission[current_mission-1]
+            await self.delete_occupied_node(past_node)
+        return
 
 
     async def mission_register(self, drone_name, direction):
@@ -128,23 +139,12 @@ class TaskManager():
         return
 
     async def certification_failed(self, drone_name):
-        # 역방향으로 설정
-        direction = 'reverse'
-        # 이전 미션 저장
-        mission_past = self.mission_lists[drone_name]
-        print(1)
-        # 미션리스트에서 미션 삭제
-        del self.mission_lists[drone_name]
-        print(2)
-        # 역방향 미션 등록
-        await self.mission_register(drone_name, direction)
-        print(3)
-        # 이륙 없이 역방향 미션 시작
-        await self.mission_start(drone_name, direction)
-        print(4)
-        # 미션이 시작되었다면 호버링하고 있던 노드를 선점된 노드에서 삭제
-        await self.delete_occupied_node(mission_past[-1])
-        print(5)
+        direction = 'reverse' # 역방향으로 설정
+        mission_past = self.mission_lists[drone_name] # 이전 미션 저장
+        del self.mission_lists[drone_name] # 미션리스트에서 미션 삭제
+        await self.mission_register(drone_name, direction) # 역방향 미션 등록
+        await self.mission_start(drone_name, direction) # 이륙 없이 역방향 미션 시작
+        await self.delete_occupied_node(mission_past[-1]) # 미션이 시작되었다면 호버링하고 있던 노드를 선점된 노드에서 삭제
         return
 
     async def get_mission_file(self, drone_name):
@@ -174,10 +174,12 @@ class TaskManager():
 
     # 지나온 노드를 삭제하는 함수
     async def delete_occupied_node(self, node):
-        async with self.lock:
+        try:
             self.occupied_nodes.remove(node)
             print(f"Remove {node}")
             print(f"Occupied_node : {self.occupied_nodes}")
+        except:
+            print(f'{node}가 선점된 노드에 없는데 삭제를 시도했습니다.')
         return
 
     # 메시지 하나를 드론에게 전달하는 함수

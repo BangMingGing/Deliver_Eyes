@@ -27,7 +27,7 @@ async def generateFaceData(request: Request, videoFile: UploadFile = File(...)):
     with open(f"{FACE_CONFIG.TRAIN_DATAS_ROUTE}/{user}", "wb") as video:
         video.write(videoFile.file.read())
 
-    await face_data_generator.train(user)
+    await face_data_generator.generate_face_data(user)
 
     try:
         message = "Video uploaded successfully"

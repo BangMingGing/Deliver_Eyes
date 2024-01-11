@@ -12,7 +12,7 @@ model.load_state_dict(torch.load(f"{FACE_CONFIG.PTH_ROUTE}"), strict=False)
 model.eval()
 torch.set_grad_enabled(False)
 
-async def train(user):
+async def generate_face_data(user):
     train_data_route = f"{FACE_CONFIG.TRAIN_DATAS_ROUTE}/{user}"
     receiver_info_route = f"{FACE_CONFIG.RECEIVER_INFOS_ROUTE}/{user}"
     

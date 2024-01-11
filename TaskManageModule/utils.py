@@ -41,10 +41,10 @@ async def get_mission_pause_message():
     }
     return message
 
-async def get_resume_message():
+async def get_resume_message(flag):
     message = {
-        'header': 'start_mission',
-        'contents': {}
+        'header': 'resume_mission',
+        'contents': {'flag': flag}
     }
     return message
 

@@ -7,130 +7,81 @@ import database
 from task_manager import TaskManager
 from configuration import RABBITMQ_CONFIG
 
-async def task_consume(task_queue, task_manager):
 
+async def judge_message(task_manager, message):
+    drone_name = message['drone_name']
+    header = message['header']
+    contents = message['contents']
+    
+    if header == 'mission_valid':
+        print('mission_valid called')
+        current_mission = contents['current_mission']
+        await task_manager.mission_valid(drone_name, current_mission)
+
+    elif header == 'resume_valid':
+        print('resume_valid called')
+        current_mission = contents['current_mission']
+        await task_manager.resume_valid(drone_name, current_mission)
+    
+    elif header == 'mission_start':
+        print('mission_start called')
+        direction = contents['direction']
+        await task_manager.mission_register(drone_name, direction)
+        await task_manager.mission_start(drone_name, direction)
+
+    elif header == 'mission_finished':
+        print('mission_finished called')
+        direction = contents['direction']
+        await task_manager.mission_finished(drone_name, direction)
+
+    elif header == 'face_recog_start':
+        print('face recog start called')
+        await task_manager.face_recog_start(drone_name)
+
+    elif header == 'face_recog':
+        print('face recog called')
+        database.send_to_face_module(message)
+
+    elif header == 'face_recog_finish':
+        print('face recog finish called')
+        database.send_to_face_module(message)
+        
+    elif header == 'face_inference_finish':
+        print('face inference finish called')
+        face_recog_result = contents['face_recog_result']
+        if face_recog_result:
+            await task_manager.certification_success(drone_name)
+
+    elif header == 'password_certify_success':
+        print('password_certify_success called')
+        await task_manager.certification_success(drone_name)
+    
+    elif header == 'password_certify_failed':
+        print('password_certify_failed called')
+        await task_manager.certification_failed(drone_name)
+
+
+async def task_consume(task_queue, task_manager):
     async def consume():
         async for message in task_queue:
             async with message.process():
                 message = pickle.loads(message.body, encoding='bytes')
                 
-                drone_name = message['drone_name']
-                header = message['header']
-                contents = message['contents']
-
-                if header == 'mission_valid':
-                    print('mission_valid called')
-                    current_mission = contents['current_mission']
-                    await task_manager.mission_valid(drone_name, current_mission)
-
-                elif header == 'resume_valid':
-                    print('resume_valid called')
-                    current_mission = contents['current_mission']
-                    await task_manager.resume_valid(drone_name, current_mission)
-                
-                elif header == 'mission_start':
-                    print('mission_start called')
-                    direction = contents['direction']
-                    await task_manager.mission_register(drone_name, direction)
-                    await task_manager.mission_start(drone_name, direction)
-
-                elif header == 'mission_finished':
-                    print('mission_finished called')
-                    direction = contents['direction']
-                    await task_manager.mission_finished(drone_name, direction)
-
-                elif header == 'face_recog_start':
-                    print('face recog start called')
-                    await task_manager.face_recog_start(drone_name)
-
-                elif header == 'face_recog':
-                    print('face recog called')
-                    database.send_to_face_module(message)
-
-                elif header == 'face_recog_finish':
-                    print('face recog finish called')
-                    database.send_to_face_module(message)
-                    
-                elif header == 'face_inference_finish':
-                    print('face inference finish called')
-                    face_recog_result = contents['face_recog_result']
-                    if face_recog_result:
-                        await task_manager.certification_success(drone_name)
-
-                elif header == 'password_certify_success':
-                    print('password_certify_success called')
-                    await task_manager.certification_success(drone_name)
-                
-                elif header == 'password_certify_failed':
-                    print('password_certify_failed called')
-                    await task_manager.certification_failed(drone_name)
-
+                await judge_message(task_manager, message)
 
                 print('message complete')
                 
-
     print(" -- [Task Consumer] started")
 
     while True:
         await consume()
 
 async def db_consume(task_manager):
-
     print(" -- [DB Task Consumer] started")
     while True:
         message = database.getTaskMessage()
         if message is not None:
-            drone_name = message['drone_name']
-            header = message['header']
-            contents = message['contents']
-
-            if header == 'mission_valid':
-                print('mission_valid called')
-                current_mission = contents['current_mission']
-                await task_manager.mission_valid(drone_name, current_mission)
-
-            elif header == 'resume_valid':
-                print('resume_valid called')
-                current_mission = contents['current_mission']
-                await task_manager.resume_valid(drone_name, current_mission)
-            
-            elif header == 'mission_start':
-                print('mission_start called')
-                direction = contents['direction']
-                await task_manager.mission_register(drone_name, direction)
-                await task_manager.mission_start(drone_name, direction)
-
-            elif header == 'mission_finished':
-                print('mission_finished called')
-                direction = contents['direction']
-                await task_manager.mission_finished(drone_name, direction)
-
-            elif header == 'face_recog_start':
-                print('face recog start called')
-                await task_manager.face_recog_start(drone_name)
-
-            elif header == 'face_recog':
-                print('face recog called')
-                database.send_to_face_module(message)
-
-            elif header == 'face_recog_finish':
-                print('face recog finish called')
-                database.send_to_face_module(message)
-                
-            elif header == 'face_inference_finish':
-                print('face inference finish called')
-                face_recog_result = contents['face_recog_result']
-                if face_recog_result:
-                    await task_manager.certification_success(drone_name)
-
-            elif header == 'password_certify_success':
-                print('password_certify_success called')
-                await task_manager.certification_success(drone_name)
-            
-            elif header == 'password_certify_failed':
-                print('password_certify_failed called')
-                await task_manager.certification_failed(drone_name)
-
+            await judge_message(task_manager, message)
 
             print('message complete')
             await asyncio.sleep(1)
@@ -173,11 +124,11 @@ async def main():
 
     consumer_task = loop.create_task(task_consume(task_queue, task_manager))
     db_consume_task = loop.create_task(db_consume(task_manager))
-    status_task = loop.create_task(task_manager_status(task_manager))
+    # status_task = loop.create_task(task_manager_status(task_manager))
 
     try:
-        # await asyncio.gather(consumer_task)
-        await asyncio.gather(consumer_task, db_consume_task, status_task)
+        await asyncio.gather(consumer_task, db_consume_task)
+        # await asyncio.gather(consumer_task, db_consume_task, status_task)
     except KeyboardInterrupt:
         pass
     finally:

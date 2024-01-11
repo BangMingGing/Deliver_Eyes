@@ -4,3 +4,4 @@ FaceRecogModule/pth/
 FaceRecogModule/receiver_infos/
 FaceRecogModule/train_datas/
 FaceRecogModule/resnet_server.onnx
+*.swp
